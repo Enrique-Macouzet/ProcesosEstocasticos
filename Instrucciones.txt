@@ -1,0 +1,19 @@
+﻿Descargar Librerías:
+
+pip install "streamlit>=1.32.0" "pandas>=2.0.0" "numpy>=1.24.0"
+
+Crear Entorno Virtual:
+
+python -m venv mdp
+
+Activar Entorno Virtual:
+
+source mdp/bin/activate
+
+Ejecutar App:
+
+streamlit run app.py
+
+Salir de Entorno:
+
+deactivate
