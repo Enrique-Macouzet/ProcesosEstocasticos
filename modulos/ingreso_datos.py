@@ -12,7 +12,7 @@ from fractions import Fraction
 init_session()
 mdp = get_mdp()
 
-# ---------- ESTILOS (heredados de app.py, pero aseguramos algunos) ----------
+# ---------- ESTILOS ----------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
@@ -33,11 +33,10 @@ div[data-baseweb="input"] input:focus { border-color:#F5A800 !important; box-sha
 .badge-warn { display:inline-flex; align-items:center; gap:4px; background:rgba(245,168,0,.12); border:1px solid rgba(245,168,0,.3); color:#F5A800; font-size:.75rem; padding:2px 10px; border-radius:20px; }
 .badge-err { display:inline-flex; align-items:center; gap:4px; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); color:#EF4444; font-size:.75rem; padding:2px 10px; border-radius:20px; }
 hr { border-color:#1E2A3A; margin:1.5rem 0; }
-[data-testid="stSidebar"] { background:linear-gradient(180deg,#0D1321 0%,#0A0E1A 100%); border-right:1px solid #1E2A3A; }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- FUNCION AUXILIAR PARA EVALUAR EXPRESIONES ----------
+# ---------- FUNCIONES AUXILIARES ----------
 def evaluar_numero(valor_str, valor_actual=0.0, permitir_fraccion=True):
     """Convierte una cadena en float, aceptando fracciones como '1/3'."""
     if not valor_str.strip():
@@ -84,12 +83,12 @@ col_tipo, col_est, col_dec = st.columns([1, 2, 2])
 with col_tipo:
     tipo_actual = mdp.get("tipo", "costos")
     tipo = st.radio(
-    "Tipo de modelo",
-    ["costos", "ganancias"],
-    index=0 if tipo_actual == "costos" else 1,
-    format_func=lambda x: "Costos (minimizar)" if x == "costos" else "Ganancias (Maximizar)",
-    help="Define si el objetivo es minimizar costos o maximizar ganancia."
-)
+        "Tipo de modelo",
+        ["costos", "ganancias"],
+        index=0 if tipo_actual == "costos" else 1,
+        format_func=lambda x: "Costos (minimizar)" if x == "costos" else "Ganancias (maximizar)",
+        help="Define si el objetivo es minimizar costos o maximizar ganancias."
+    )
     mdp["tipo"] = tipo
 
 with col_est:
@@ -102,7 +101,6 @@ with col_est:
     if estados_str.strip():
         nuevos_estados = [s.strip() for s in estados_str.split(",") if s.strip()]
         if nuevos_estados != mdp["estados"]:
-            # Limpiar datos de estados eliminados
             eliminados = set(mdp["estados"]) - set(nuevos_estados)
             for estado in eliminados:
                 for d, data in mdp["decisiones_data"].items():
@@ -128,7 +126,6 @@ with col_dec:
     if decisiones_str.strip():
         nuevas_dec = [d.strip() for d in decisiones_str.split(",") if d.strip()]
         if nuevas_dec != mdp["decisiones"]:
-            # Agregar nuevas decisiones
             for d in nuevas_dec:
                 if d not in mdp["decisiones_data"]:
                     mdp["decisiones_data"][d] = {
@@ -136,7 +133,6 @@ with col_dec:
                         "costos": {},
                         "transiciones": {}
                     }
-            # Eliminar decisiones que ya no estan
             for d in list(mdp["decisiones_data"].keys()):
                 if d not in nuevas_dec:
                     del mdp["decisiones_data"][d]
@@ -161,7 +157,7 @@ if not mdp["estados"] or not mdp["decisiones"]:
 st.markdown("""
 <div class="section-header">
     <div class="accent-bar"></div>
-    <h3>2 · Configuracion por Decision</h3>
+    <h3>2 · Configuración por Decisión</h3>
 </div>
 """, unsafe_allow_html=True)
 
@@ -171,7 +167,6 @@ for tab, d in zip(tabs, mdp["decisiones"]):
     with tab:
         data = mdp["decisiones_data"][d]
 
-        # --- Estados afectados ---
         st.markdown(f"""
         <div style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:#8FA0B8;
                     letter-spacing:.08em;margin-bottom:.75rem;">
@@ -180,7 +175,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
         """, unsafe_allow_html=True)
 
         afectados = st.multiselect(
-            "Selecciona los estados en los que aplica esta decision",
+            "Selecciona los estados en los que aplica esta decisión",
             options=mdp["estados"],
             default=[s for s in data.get("estados_afectados", []) if s in mdp["estados"]],
             key=f"afect_{d}",
@@ -189,14 +184,13 @@ for tab, d in zip(tabs, mdp["decisiones"]):
         data["estados_afectados"] = afectados
 
         if not afectados:
-            st.info("Selecciona al menos un estado para continuar con esta decision.")
+            st.info("Selecciona al menos un estado para continuar con esta decisión.")
             continue
 
         st.markdown("<hr>", unsafe_allow_html=True)
 
         col_costos, col_trans = st.columns([1, 2])
 
-        # --- Costos ---
         with col_costos:
             tipo_label = "Costo" if mdp["tipo"] == "costos" else "Ganancia"
             st.markdown(f"""
@@ -209,7 +203,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
             st.markdown(f"""
             <div style="background:#0A0E1A;border:1px solid #1E2A3A;border-radius:8px;padding:.75rem;
                         margin-bottom:1rem;font-size:.78rem;color:#8FA0B8;font-family:'Sora',sans-serif;">
-                Ingresa el {tipo_label.lower()} de estar en cada estado y aplicar la decision <b style="color:#F5A800;">{d}</b>.
+                Ingresa el {tipo_label.lower()} de estar en cada estado y aplicar la decisión <b style="color:#F5A800;">{d}</b>.
             </div>
             """, unsafe_allow_html=True)
 
@@ -217,7 +211,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                 current = data["costos"].get(s, 0.0)
                 default_str = formatear_numero(current)
                 val_str = st.text_input(
-                    f"Costo en {s} con {d}",
+                    f"{tipo_label} en {s} con {d}",
                     value=default_str,
                     key=f"costo_{d}_{s}",
                     placeholder="0.0"
@@ -225,12 +219,11 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                 val = evaluar_numero(val_str, current, permitir_fraccion=True)
                 data["costos"][s] = val
 
-        # --- Matriz de transicion ---
         with col_trans:
             st.markdown(f"""
             <div style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:#8FA0B8;
                         letter-spacing:.08em;margin-bottom:.75rem;">
-                MATRIZ DE TRANSICION
+                MATRIZ DE TRANSICIÓN
             </div>
             """, unsafe_allow_html=True)
 
@@ -238,7 +231,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
             <div style="background:#0A0E1A;border:1px solid #1E2A3A;border-radius:8px;padding:.75rem;
                         margin-bottom:1rem;font-size:.78rem;color:#8FA0B8;font-family:'Sora',sans-serif;">
                 Para cada estado origen <b style="color:#E8EAF0;">s</b>, ingresa las probabilidades de 
-                transicion hacia cada estado destino <b style="color:#E8EAF0;">s'</b>.
+                transición hacia cada estado destino <b style="color:#E8EAF0;">s'</b>.
                 Cada fila debe sumar <b style="color:#10B981;">1.0</b>. Acepta fracciones (ej. 1/3).
             </div>
             """, unsafe_allow_html=True)
@@ -258,9 +251,16 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                 </div>
                 """, unsafe_allow_html=True)
 
-                cols = st.columns(len(todos_estados))
+                # Encabezados de columna (estados destino)
+                header_cols = st.columns(len(todos_estados))
+                for col_i, s2 in zip(header_cols, todos_estados):
+                    with col_i:
+                        st.markdown(f"<div style='text-align:center;color:#8FA0B8;font-size:0.7rem;'>{s2}</div>", unsafe_allow_html=True)
+
+                # Inputs de probabilidad
+                input_cols = st.columns(len(todos_estados))
                 fila_sum = 0.0
-                for col_i, s2 in zip(cols, todos_estados):
+                for col_i, s2 in zip(input_cols, todos_estados):
                     with col_i:
                         current_p = fila.get(s2, 0.0)
                         default_str = formatear_numero(current_p)
@@ -272,7 +272,6 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                             label_visibility="collapsed"
                         )
                         p = evaluar_numero(p_str, current_p, permitir_fraccion=True)
-                        # Acotar entre 0 y 1
                         p = max(0.0, min(1.0, p))
                         fila[s2] = p
                         fila_sum += p
@@ -295,9 +294,9 @@ col_save, col_reset, col_status = st.columns([2, 1, 3])
 with col_save:
     if st.button("Guardar datos del sistema", type="primary", use_container_width=True):
         if listo:
-            st.success("Datos guardados correctamente. Puedes ir al modulo de Visualizacion.")
+            st.success("Datos guardados correctamente. Puedes ir al módulo de Visualización.")
         else:
-            st.warning("El modelo tiene datos incompletos. Revisa que todas las filas de transicion sumen 1.0 y que cada estado afectado tenga un costo asignado.")
+            st.warning("El modelo tiene datos incompletos. Revisa que todas las filas de transición sumen 1.0 y que cada estado afectado tenga un costo/ganancia asignado.")
 
 with col_reset:
     if st.button("Limpiar todo", use_container_width=True):
@@ -306,7 +305,7 @@ with col_reset:
 
 with col_status:
     if listo:
-        st.markdown('<div style="padding:.5rem 0;"><span class="badge-ok">Modelo completo y valido</span></div>', unsafe_allow_html=True)
+        st.markdown('<div style="padding:.5rem 0;"><span class="badge-ok">Modelo completo y válido</span></div>', unsafe_allow_html=True)
     else:
         missing = []
         if not mdp["estados"]:

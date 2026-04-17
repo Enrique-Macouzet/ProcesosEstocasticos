@@ -86,7 +86,7 @@ with col3:
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # ---------- TABLA DE COSTOS ----------
-st.markdown("""
+st.markdown(f"""
 <div class="section-header">
     <div class="accent-bar"></div>
     <h3>Tabla de {tipo_label}s</h3>
