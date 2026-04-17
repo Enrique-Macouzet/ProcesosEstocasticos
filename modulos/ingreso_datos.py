@@ -1,39 +1,73 @@
 """
 modulos/ingreso_datos.py
 Interfaz para definir estados, decisiones, costos y matrices de transicion.
+Acepta fracciones (ej. 1/3) en campos numéricos.
 """
 
 import streamlit as st
 from guardado.sesion import get_mdp, reset_mdp, mdp_completo, init_session
+from fractions import Fraction
 
-st.set_page_config(page_title="Ingreso de Datos — MDP Solver", page_icon="📥")
+# Inicializar sesion
 init_session()
-
-# Obtener el estado actual del MDP
 mdp = get_mdp()
 
-# ---------- ESTILOS COMPLEMENTARIOS (el CSS principal ya está en app.py) ----------
+# ---------- ESTILOS (heredados de app.py, pero aseguramos algunos) ----------
 st.markdown("""
 <style>
-/* Aseguramos que los estilos específicos de este módulo se mantengan */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+html, body, [class*="css"] { font-family: 'Sora', sans-serif; }
 .main .block-container { padding-top: 2rem; max-width: 1100px; }
+.unam-card { background:#111827; border:1px solid #1E2A3A; border-radius:12px; padding:1.5rem; margin-bottom:1rem; }
 .section-header { display:flex; align-items:center; gap:.75rem; margin-bottom:1.25rem; }
 .section-header .accent-bar { width:4px; height:28px; background:linear-gradient(180deg,#F5A800,#003F8A); border-radius:2px; flex-shrink:0; }
 .section-header h3 { margin:0; font-family:'Sora',sans-serif; font-size:1rem; font-weight:600; color:#E8EAF0; letter-spacing:.03em; }
+div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea { font-family:'IBM Plex Mono',monospace !important; font-size:.85rem; background:#0A0E1A !important; border-color:#1E2A3A !important; }
+div[data-baseweb="input"] input:focus { border-color:#F5A800 !important; box-shadow:0 0 0 1px #F5A800 !important; }
+.stButton > button[kind="primary"] { background:linear-gradient(135deg,#F5A800,#E09600) !important; color:#0A0E1A !important; font-family:'Sora',sans-serif; font-weight:600; border:none; border-radius:8px; }
+.stButton > button { font-family:'Sora',sans-serif; border-radius:8px; }
+[data-testid="stTabs"] [data-baseweb="tab"] { font-family:'Sora',sans-serif; font-size:.875rem; color:#8FA0B8; }
+[data-testid="stTabs"] [aria-selected="true"] { color:#F5A800 !important; border-bottom-color:#F5A800 !important; }
 .chip { display:inline-block; background:rgba(0,63,138,.3); border:1px solid rgba(0,63,138,.6); color:#7EB3FF; font-family:'IBM Plex Mono',monospace; font-size:.78rem; padding:2px 10px; border-radius:20px; margin:2px; }
 .badge-ok { display:inline-flex; align-items:center; gap:4px; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.3); color:#10B981; font-size:.75rem; padding:2px 10px; border-radius:20px; }
 .badge-warn { display:inline-flex; align-items:center; gap:4px; background:rgba(245,168,0,.12); border:1px solid rgba(245,168,0,.3); color:#F5A800; font-size:.75rem; padding:2px 10px; border-radius:20px; }
 .badge-err { display:inline-flex; align-items:center; gap:4px; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); color:#EF4444; font-size:.75rem; padding:2px 10px; border-radius:20px; }
 hr { border-color:#1E2A3A; margin:1.5rem 0; }
+[data-testid="stSidebar"] { background:linear-gradient(180deg,#0D1321 0%,#0A0E1A 100%); border-right:1px solid #1E2A3A; }
 </style>
 """, unsafe_allow_html=True)
+
+# ---------- FUNCION AUXILIAR PARA EVALUAR EXPRESIONES ----------
+def evaluar_numero(valor_str, valor_actual=0.0, permitir_fraccion=True):
+    """Convierte una cadena en float, aceptando fracciones como '1/3'."""
+    if not valor_str.strip():
+        return valor_actual
+    try:
+        if permitir_fraccion and '/' in valor_str:
+            num, den = valor_str.split('/')
+            return float(num) / float(den)
+        else:
+            return float(valor_str)
+    except (ValueError, ZeroDivisionError):
+        st.warning(f"Valor inválido '{valor_str}'. Se usará {valor_actual}")
+        return valor_actual
+
+def formatear_numero(valor):
+    """Convierte un float a cadena, usando fracción si es exacta."""
+    if abs(valor) < 1e-12:
+        return ""
+    frac = Fraction(valor).limit_denominator(1000)
+    if frac.denominator == 1:
+        return str(frac.numerator)
+    else:
+        return f"{frac.numerator}/{frac.denominator}"
 
 # ---------- ENCABEZADO ----------
 st.markdown("""
 <div style="margin-bottom:1.5rem;">
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#F5A800;letter-spacing:.15em;margin-bottom:.4rem;">MODULO 01</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#F5A800;letter-spacing:.15em;margin-bottom:.4rem;">MÓDULO 01</div>
     <h1 style="font-family:'Sora',sans-serif;font-weight:700;font-size:1.8rem;color:#E8EAF0;margin:0;">Ingreso de Datos</h1>
-    <p style="color:#8FA0B8;font-size:.9rem;margin:.4rem 0 0 0;">Define completamente tu Proceso Markoviano de Decision.</p>
+    <p style="color:#8FA0B8;font-size:.9rem;margin:.4rem 0 0 0;">Define completamente tu Proceso Markoviano de Decisión.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -50,12 +84,12 @@ col_tipo, col_est, col_dec = st.columns([1, 2, 2])
 with col_tipo:
     tipo_actual = mdp.get("tipo", "costos")
     tipo = st.radio(
-        "Tipo de modelo",
-        ["costos", "recompensas"],
-        index=0 if tipo_actual == "costos" else 1,
-        format_func=lambda x: "Costos (minimizar)" if x == "costos" else "Recompensas (maximizar)",
-        help="Define si el objetivo es minimizar costos o maximizar recompensas."
-    )
+    "Tipo de modelo",
+    ["costos", "ganancias"],
+    index=0 if tipo_actual == "costos" else 1,
+    format_func=lambda x: "Costos (minimizar)" if x == "costos" else "Ganancias (Maximizar)",
+    help="Define si el objetivo es minimizar costos o maximizar ganancia."
+)
     mdp["tipo"] = tipo
 
 with col_est:
@@ -164,11 +198,11 @@ for tab, d in zip(tabs, mdp["decisiones"]):
 
         # --- Costos ---
         with col_costos:
-            tipo_label = "Costo" if mdp["tipo"] == "costos" else "Recompensa"
+            tipo_label = "Costo" if mdp["tipo"] == "costos" else "Ganancia"
             st.markdown(f"""
             <div style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:#8FA0B8;
                         letter-spacing:.08em;margin-bottom:.75rem;">
-                {tipo_label.upper()}S C(s, {d})
+                {tipo_label.upper()}S
             </div>
             """, unsafe_allow_html=True)
 
@@ -181,13 +215,14 @@ for tab, d in zip(tabs, mdp["decisiones"]):
 
             for s in afectados:
                 current = data["costos"].get(s, 0.0)
-                val = st.number_input(
-                    f"C({s}, {d})",
-                    value=float(current),
-                    step=0.01,
-                    format="%.4f",
-                    key=f"costo_{d}_{s}"
+                default_str = formatear_numero(current)
+                val_str = st.text_input(
+                    f"Costo en {s} con {d}",
+                    value=default_str,
+                    key=f"costo_{d}_{s}",
+                    placeholder="0.0"
                 )
+                val = evaluar_numero(val_str, current, permitir_fraccion=True)
                 data["costos"][s] = val
 
         # --- Matriz de transicion ---
@@ -195,7 +230,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
             st.markdown(f"""
             <div style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:#8FA0B8;
                         letter-spacing:.08em;margin-bottom:.75rem;">
-                MATRIZ DE TRANSICION P(s'|s, {d})
+                MATRIZ DE TRANSICION
             </div>
             """, unsafe_allow_html=True)
 
@@ -204,7 +239,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                         margin-bottom:1rem;font-size:.78rem;color:#8FA0B8;font-family:'Sora',sans-serif;">
                 Para cada estado origen <b style="color:#E8EAF0;">s</b>, ingresa las probabilidades de 
                 transicion hacia cada estado destino <b style="color:#E8EAF0;">s'</b>.
-                Cada fila debe sumar <b style="color:#10B981;">1.0</b>.
+                Cada fila debe sumar <b style="color:#10B981;">1.0</b>. Acepta fracciones (ej. 1/3).
             </div>
             """, unsafe_allow_html=True)
 
@@ -228,15 +263,17 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                 for col_i, s2 in zip(cols, todos_estados):
                     with col_i:
                         current_p = fila.get(s2, 0.0)
-                        p = st.number_input(
+                        default_str = formatear_numero(current_p)
+                        p_str = st.text_input(
                             f"→{s2}",
-                            value=float(current_p),
-                            min_value=0.0,
-                            max_value=1.0,
-                            step=0.01,
-                            format="%.4f",
-                            key=f"trans_{d}_{s}_{s2}"
+                            value=default_str,
+                            key=f"trans_{d}_{s}_{s2}",
+                            placeholder="0",
+                            label_visibility="collapsed"
                         )
+                        p = evaluar_numero(p_str, current_p, permitir_fraccion=True)
+                        # Acotar entre 0 y 1
+                        p = max(0.0, min(1.0, p))
                         fila[s2] = p
                         fila_sum += p
 

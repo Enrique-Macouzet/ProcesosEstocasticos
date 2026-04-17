@@ -28,15 +28,14 @@ st.markdown("""
 <div style="margin-bottom: 2rem;">
     <div style="font-family:'IBM Plex Mono',monospace; font-size:0.75rem;
                 color:#F5A800; letter-spacing:0.15em; margin-bottom:0.5rem;">
-        PROCESOS MARKOVIANOS DE DECISION
+        PROCESOS MARKOVIANOS DE DECISIÓN
     </div>
     <h1 style="font-family:'Sora',sans-serif; font-weight:700; font-size:2.2rem;
                color:#E8EAF0; margin:0 0 0.5rem 0; line-height:1.2;">
-        MDP Solver
+        Herramienta MDP
     </h1>
     <p style="color:#8FA0B8; font-size:1rem; margin:0; max-width:600px;">
-        Herramienta para modelar y resolver Procesos Markovianos de Decision.
-        Ingresa tu modelo una sola vez y aplica cualquier metodo de solucion.
+        Modelado y solución de Procesos Markovianos de Decisión.
     </p>
 </div>
 """, unsafe_allow_html=True)

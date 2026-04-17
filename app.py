@@ -8,7 +8,7 @@ import streamlit as st
 from guardado.sesion import init_session
 
 st.set_page_config(
-    page_title="MDP Solver — UNAM",
+    page_title="Herramienta MDP · FES Acatlán",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -220,9 +220,9 @@ with st.sidebar:
                         font-size:1.1rem;">🎓</div>
             <div>
                 <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:0.95rem;
-                            color:#E8EAF0; letter-spacing:0.05em;">MDP SOLVER</div>
+                            color:#E8EAF0; letter-spacing:0.05em;">HERRAMIENTA MDP</div>
                 <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem;
-                            color:#F5A800; letter-spacing:0.1em;">UNAM · FES ACATLAN</div>
+                            color:#F5A800; letter-spacing:0.1em;">FES ACATLÁN · UNAM</div>
             </div>
         </div>
     </div>
@@ -236,7 +236,8 @@ pg = st.navigation(
         ],
         "Modulos": [
             st.Page("modulos/ingreso_datos.py", title="Ingreso de Datos", icon="📥"),
-            st.Page("modulos/visualizacion.py", title="Visualizacion", icon="📊")
+            st.Page("modulos/visualizacion.py", title="Visualizacion", icon="📊"),
+            st.Page("modulos/enumeracion_exhaustiva.py", title="Enumeración Exhaustiva", icon="🔍")
         ]
     }
 )

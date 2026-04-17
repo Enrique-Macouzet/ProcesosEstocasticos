@@ -74,7 +74,7 @@ with col2:
     """, unsafe_allow_html=True)
 
 with col3:
-    obj = "Minimizar costos" if tipo == "costos" else "Maximizar recompensas"
+    obj = "Minimizar costos" if tipo == "costos" else "Maximizar ganancias"
     icon = "💸" if tipo == "costos" else "🏆"
     st.markdown(f"""
     <div class="unam-card">
@@ -89,7 +89,7 @@ st.markdown("<hr>", unsafe_allow_html=True)
 st.markdown("""
 <div class="section-header">
     <div class="accent-bar"></div>
-    <h3>Tabla de costos</h3>
+    <h3>Tabla de {tipo_label}s</h3>
 </div>
 """, unsafe_allow_html=True)
 
