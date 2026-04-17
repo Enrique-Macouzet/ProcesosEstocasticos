@@ -45,7 +45,7 @@ if not mdp["estados"] or not mdp["decisiones"]:
 estados = mdp["estados"]
 decisiones = mdp["decisiones"]
 tipo = mdp["tipo"]
-tipo_label = "Costo" if tipo == "costos" else "Recompensa"
+tipo_label = "Costo" if tipo == "costos" else "Ganancias"
 
 # ---------- RESUMEN GENERAL ----------
 st.markdown("""
