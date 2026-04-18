@@ -1,12 +1,14 @@
 """
 app.py
-Punto de entrada principal de la aplicacion MDP Solver.
-Define la navegacion, estilos globales y barra lateral.
+Punto de entrada principal de la aplicacion Herramienta MDP.
+Configura la pagina, aplica estilos globales, define la navegacion y la barra lateral.
+La sesion del usuario se inicializa desde guardado.sesion.
 """
 
 import streamlit as st
 from guardado.sesion import init_session
 
+# Configuracion inicial de la pagina
 st.set_page_config(
     page_title="Herramienta MDP · FES Acatlán",
     page_icon="🎓",
@@ -14,9 +16,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Inicializar el estado de sesion (modelo MDP)
 init_session()
 
 # ---------- ESTILOS CSS GLOBALES ----------
+# Se define el tema visual UNAM (azul marino y dorado) para toda la aplicacion.
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
@@ -210,7 +214,7 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- MARCA DE LA BARRA LATERAL ----------
+# ---------- BARRA LATERAL (MARCA Y LOGOTIPO) ----------
 with st.sidebar:
     st.markdown("""
     <div style="padding: 1rem 0 1.5rem 0; border-bottom: 1px solid #1E2A3A; margin-bottom: 1rem;">
@@ -228,15 +232,17 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# ---------- NAVEGACION ----------
+# ---------- NAVEGACION ENTRE PAGINAS ----------
+# Se definen las paginas disponibles en la aplicacion.
+# La navegacion se gestiona con el componente nativo st.navigation.
 pg = st.navigation(
     {
         "Inicio": [
             st.Page("modulos/inicio.py", title="Panel Principal", icon="🎓")
         ],
-        "Modulos": [
+        "Módulos": [
             st.Page("modulos/ingreso_datos.py", title="Ingreso de Datos", icon="📥"),
-            st.Page("modulos/visualizacion.py", title="Visualizacion", icon="📊"),
+            st.Page("modulos/visualizacion.py", title="Visualización", icon="📊"),
             st.Page("modulos/enumeracion_exhaustiva.py", title="Enumeración Exhaustiva", icon="🔍")
         ]
     }

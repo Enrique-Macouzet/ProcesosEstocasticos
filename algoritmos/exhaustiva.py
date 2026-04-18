@@ -1,25 +1,19 @@
 """
 algoritmos/exhaustiva.py
 Enumeración Exhaustiva de políticas deterministas.
-Incluye generación de políticas, evaluación vía sistema de ecuaciones estacionarias
-(resuelto por Gauss-Jordan) y cálculo de costo/recompensa esperado.
+Soporta detección de matrices singulares y errores numéricos.
 """
 
 import itertools
 import pandas as pd
+import numpy as np
 from fractions import Fraction
 
 def _subindice(i):
-    """Convierte un número entero en subíndice Unicode."""
     subs = "₀₁₂₃₄₅₆₇₈₉"
     return ''.join(subs[int(d)] for d in str(i))
 
 def generar_politicas(estados, decisiones_data):
-    """
-    Genera todas las políticas deterministas posibles.
-    Para cada estado, se listan las decisiones que lo afectan.
-    Retorna una lista de diccionarios {estado: decision}.
-    """
     opciones_por_estado = {}
     for s in estados:
         opciones = []
@@ -38,10 +32,6 @@ def generar_politicas(estados, decisiones_data):
     return politicas
 
 def evaluar_politica(politica, estados, decisiones_data, tipo="costos"):
-    """
-    Evalúa una política determinista.
-    Retorna un diccionario con resultados y pasos intermedios.
-    """
     n = len(estados)
     P = [[0.0]*n for _ in range(n)]
     c = [0.0]*n
@@ -57,85 +47,115 @@ def evaluar_politica(politica, estados, decisiones_data, tipo="costos"):
             j = idx[s2]
             P[i][j] = prob
 
-    # Sistema de ecuaciones con subíndices
-    sistema_str = []
-    for j in range(n-1):
-        terminos = []
-        for i in range(n):
-            if P[i][j] != 0:
-                terminos.append(f"({P[i][j]:.4f})π{_subindice(i)}")
-        ec = " + ".join(terminos) if terminos else "0"
-        sistema_str.append(f"π{_subindice(j)} = {ec}")
-    sistema_str.append(" + ".join([f"π{_subindice(i)}" for i in range(n)]) + " = 1")
-
-    # Construir sistema cuadrado
-    A_square = []
-    b_square = []
-    for j in range(n-1):
+    # Construir sistema (I - P^T) π = 0, con Σπ = 1
+    A = []
+    for j in range(n):
         fila = []
         for i in range(n):
             if i == j:
-                fila.append(P[i][j] - 1.0)
+                fila.append(1.0 - P[i][j])
             else:
-                fila.append(P[i][j])
-        A_square.append(fila)
-        b_square.append(0.0)
-    A_square.append([1.0]*n)
-    b_square.append(1.0)
+                fila.append(-P[i][j])
+        A.append(fila)
 
-    def to_frac(x):
-        return Fraction(x).limit_denominator(1000000)
+    A[-1] = [1.0] * n
+    b = [0.0] * (n-1) + [1.0]
 
-    M = []
-    for i in range(n):
-        fila = [to_frac(A_square[i][j]) for j in range(n)] + [to_frac(b_square[i])]
-        M.append(fila)
+    try:
+        A_np = np.array(A, dtype=float)
+        b_np = np.array(b, dtype=float)
 
-    pasos_gauss = []
-    def guardar_estado(descripcion):
-        matriz_actual = [[float(M[i][j]) for j in range(n+1)] for i in range(n)]
-        pasos_gauss.append((descripcion, matriz_actual))
+        if np.linalg.matrix_rank(A_np) < n:
+            return {
+                "error": True,
+                "mensaje": "Matriz singular (sin solución única)",
+                "politica": politica,
+                "P": pd.DataFrame(P, index=estados, columns=estados),
+                "c": dict(zip(estados, c)),
+                "sistema": [],
+                "pi": None,
+                "esperado": None,
+                "gauss_steps": []
+            }
 
-    guardar_estado("Matriz aumentada inicial")
+        pi = np.linalg.solve(A_np, b_np)
+        pi = np.maximum(pi, 0)
+        pi = pi / pi.sum()
+        esperado = np.dot(pi, c)
 
-    for col in range(n):
-        max_row = col
-        for row in range(col+1, n):
-            if abs(M[row][col]) > abs(M[max_row][col]):
-                max_row = row
-        if max_row != col:
-            M[col], M[max_row] = M[max_row], M[col]
-            guardar_estado(f"Intercambio fila {col+1} ↔ fila {max_row+1}")
+        sistema_str = []
+        for j in range(n-1):
+            terminos = []
+            for i in range(n):
+                coef = 1.0 - P[i][j] if i == j else -P[i][j]
+                if abs(coef) > 1e-12:
+                    terminos.append(f"({coef:.4f})π{_subindice(i)}")
+            ec = " + ".join(terminos) if terminos else "0"
+            sistema_str.append(f"π{_subindice(j)} = {ec}")
+        sistema_str.append(" + ".join([f"π{_subindice(i)}" for i in range(n)]) + " = 1")
 
-        pivote = M[col][col]
-        if pivote == 0:
-            raise ValueError("Matriz singular")
-        for j in range(n+1):
-            M[col][j] /= pivote
-        guardar_estado(f"Fila {col+1} dividida por {float(pivote):.4f}")
+        def to_frac(x):
+            return Fraction(x).limit_denominator(1000000)
 
-        for row in range(n):
-            if row != col:
-                factor = M[row][col]
-                if factor != 0:
-                    for j in range(n+1):
-                        M[row][j] -= factor * M[col][j]
-                    guardar_estado(f"Fila {row+1} ← fila {row+1} - ({float(factor):.4f})·fila {col+1}")
+        M = []
+        for i in range(n):
+            fila = [to_frac(A[i][j]) for j in range(n)] + [to_frac(b[i])]
+            M.append(fila)
 
-    pi = [float(M[i][n]) for i in range(n)]
-    esperado = sum(pi[i] * c[i] for i in range(n))
+        pasos_gauss = []
+        def guardar_estado(descripcion):
+            matriz_actual = [[float(M[i][j]) for j in range(n+1)] for i in range(n)]
+            pasos_gauss.append((descripcion, matriz_actual))
 
-    P_df = pd.DataFrame(P, index=estados, columns=estados)
+        guardar_estado("Matriz aumentada inicial")
 
-    return {
-        "politica": politica,
-        "P": P_df,
-        "c": dict(zip(estados, c)),
-        "sistema": sistema_str,
-        "pi": dict(zip(estados, pi)),
-        "esperado": esperado,
-        "gauss_steps": pasos_gauss,
-    }
+        for col in range(n):
+            max_row = col
+            for row in range(col+1, n):
+                if abs(M[row][col]) > abs(M[max_row][col]):
+                    max_row = row
+            if max_row != col:
+                M[col], M[max_row] = M[max_row], M[col]
+                guardar_estado(f"Intercambio fila {col+1} ↔ fila {max_row+1}")
+
+            pivote = M[col][col]
+            if pivote == 0:
+                break
+            for j in range(n+1):
+                M[col][j] /= pivote
+            guardar_estado(f"Fila {col+1} dividida por {float(pivote):.4f}")
+
+            for row in range(n):
+                if row != col:
+                    factor = M[row][col]
+                    if factor != 0:
+                        for j in range(n+1):
+                            M[row][j] -= factor * M[col][j]
+                        guardar_estado(f"Fila {row+1} ← fila {row+1} - ({float(factor):.4f})·fila {col+1}")
+
+        return {
+            "error": False,
+            "politica": politica,
+            "P": pd.DataFrame(P, index=estados, columns=estados),
+            "c": dict(zip(estados, c)),
+            "sistema": sistema_str,
+            "pi": dict(zip(estados, pi.tolist())),
+            "esperado": esperado,
+            "gauss_steps": pasos_gauss,
+        }
+
+    except np.linalg.LinAlgError:
+        return {
+            "error": True,
+            "mensaje": "Error numérico al resolver el sistema",
+            "politica": politica,
+            "P": pd.DataFrame(P, index=estados, columns=estados),
+            "c": dict(zip(estados, c)),
+            "sistema": [],
+            "pi": None,
+            "esperado": None,
+            "gauss_steps": []
+        }
 
 def enumeracion_exhaustiva(estados, decisiones_data, tipo="costos", politicas_seleccionadas=None):
     if politicas_seleccionadas is not None:
@@ -151,9 +171,14 @@ def enumeracion_exhaustiva(estados, decisiones_data, tipo="costos", politicas_se
         res = evaluar_politica(pol, estados, decisiones_data, tipo)
         resultados.append(res)
 
+    resultados_validos = [r for r in resultados if not r.get("error", False)]
+
+    if not resultados_validos:
+        return None, resultados
+
     if tipo == "costos":
-        mejor = min(resultados, key=lambda x: x["esperado"])
+        mejor = min(resultados_validos, key=lambda x: x["esperado"])
     else:
-        mejor = max(resultados, key=lambda x: x["esperado"])
+        mejor = max(resultados_validos, key=lambda x: x["esperado"])
 
     return mejor, resultados

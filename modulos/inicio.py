@@ -1,14 +1,15 @@
 """
 modulos/inicio.py
 Pagina de inicio del MDP Solver. Muestra resumen del modelo y acceso a modulos.
+Incluye presentacion del equipo y una introduccion a los MDP.
 """
 
 import streamlit as st
 from guardado.sesion import get_mdp, mdp_completo
 
-st.set_page_config(page_title="Inicio — MDP Solver", page_icon="🎓")
+st.set_page_config(page_title="Inicio — Herramienta MDP", page_icon="🎓")
 
-# ---------- ESTILOS (se heredan del CSS global de app.py, pero aseguramos algunos) ----------
+# ---------- ESTILOS ----------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
@@ -18,12 +19,24 @@ html, body, [class*="css"] { font-family: 'Sora', sans-serif; }
 .badge-ok { display:inline-flex; align-items:center; gap:4px; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.3); color:#10B981; font-size:.75rem; font-family:'Sora',sans-serif; padding:2px 10px; border-radius:20px; }
 .badge-warn { display:inline-flex; align-items:center; gap:4px; background:rgba(245,168,0,.12); border:1px solid rgba(245,168,0,.3); color:#F5A800; font-size:.75rem; font-family:'Sora',sans-serif; padding:2px 10px; border-radius:20px; }
 hr { border-color:#1E2A3A; margin:1.5rem 0; }
+.team-card {
+    background: linear-gradient(145deg, #0D1321 0%, #0A0E1A 100%);
+    border: 1px solid #1E2A3A;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+.intro-text {
+    color: #B0C0D0;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
 mdp = get_mdp()
 
-# ---------- ENCABEZADO ----------
+# ---------- ENCABEZADO PRINCIPAL ----------
 st.markdown("""
 <div style="margin-bottom: 2rem;">
     <div style="font-family:'IBM Plex Mono',monospace; font-size:0.75rem;
@@ -39,6 +52,62 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
+
+# ---------- TARJETA DE PRESENTACIÓN (INTEGRANTES, FACULTAD, PROFESORA) ----------
+st.markdown("""
+<div class="team-card">
+    <div style="display:flex; flex-wrap:wrap; gap:2rem; align-items:flex-start;">
+        <div style="flex:1; min-width:200px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:#F5A800; letter-spacing:0.1em; margin-bottom:0.75rem;">
+                🎓 FACULTAD
+            </div>
+            <div style="color:#E8EAF0; font-weight:600; margin-bottom:0.25rem;">FES Acatlán</div>
+            <div style="color:#8FA0B8; font-size:0.9rem;">UNAM</div>
+        </div>
+        <div style="flex:1; min-width:200px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:#F5A800; letter-spacing:0.1em; margin-bottom:0.75rem;">
+                👩‍🏫 PROFESORA
+            </div>
+            <div style="color:#E8EAF0; font-weight:600; margin-bottom:0.25rem;">Cuéllar Aguayo Ada Ruth</div>
+            <div style="color:#8FA0B8; font-size:0.9rem;">Procesos Estocásticos</div>
+        </div>
+        <div style="flex:2; min-width:250px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:#F5A800; letter-spacing:0.1em; margin-bottom:0.75rem;">
+                👥 INTEGRANTES
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:0.5rem 1.5rem;">
+                <div style="color:#E8EAF0;">• Hernández Pérez Victoria</div>
+                <div style="color:#E8EAF0;">• Martínez Macouzet Enrique</div>
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ---------- INTRODUCCIÓN A LOS MDP ----------
+with st.expander("📘 ¿Qué son los Procesos Markovianos de Decisión?", expanded=False):
+    st.markdown("""
+    <div class="intro-text">
+    <p>Un <strong>Proceso Markoviano de Decisión (MDP)</strong> es un modelo matemático para la toma de decisiones 
+    secuenciales en entornos donde los resultados son parcialmente aleatorios y parcialmente controlados por un 
+    agente decisor.</p>
+    
+    <p>Un MDP se define mediante:</p>
+    <ul>
+        <li><strong>Estados</strong> — representan las situaciones posibles del sistema.</li>
+        <li><strong>Decisiones</strong> — acciones que el agente puede tomar en cada estado.</li>
+        <li><strong>Matriz de transición</strong> — probabilidades de pasar de un estado a otro bajo cada decisión.</li>
+        <li><strong>Costos / Ganancias</strong> — valor inmediato asociado a cada transición.</li>
+    </ul>
+    
+    <p>El objetivo es encontrar una <strong>política óptima</strong> (regla que indica qué decisión tomar en cada estado) 
+    que minimice el costo total esperado o maximice la ganancia total esperada a lo largo del tiempo.</p>
+    
+    <p>Los MDP tienen aplicaciones en robótica, finanzas, logística, inteligencia artificial, entre muchas otras áreas.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<hr>", unsafe_allow_html=True)
 
 # ---------- RESUMEN DEL MODELO ----------
 col1, col2, col3, col4 = st.columns(4)
@@ -87,17 +156,17 @@ with col4:
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # ---------- TARJETAS DE MODULOS ----------
-st.markdown("### Modulos disponibles")
-c1, c2 = st.columns(2)
+st.markdown("### Módulos disponibles")
+c1, c2, c3 = st.columns(3)
 
 with c1:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #F5A800;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
-            Ingreso de Datos
+            📥 Ingreso de Datos
         </div>
         <div style="color:#8FA0B8; font-size:0.85rem;">
-            Define estados, decisiones, costos y matrices de transicion de tu MDP.
+            Define estados, decisiones, costos y matrices de transición de tu MDP.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -106,10 +175,22 @@ with c2:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #5B9BD5;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
-            Visualizacion de Datos
+            📊 Visualización de Datos
         </div>
         <div style="color:#8FA0B8; font-size:0.85rem;">
-            Revisa el modelo ingresado: tablas de costos, matrices de transicion y grafo de la cadena.
+            Revisa el modelo ingresado: tablas de costos, matrices de transición y grafo de la cadena.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c3:
+    st.markdown("""
+    <div class="unam-card" style="border-left: 3px solid #10B981;">
+        <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+            🔍 Enumeración Exhaustiva
+        </div>
+        <div style="color:#8FA0B8; font-size:0.85rem;">
+            Evalúa todas las políticas deterministas y encuentra la óptima.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -119,8 +200,8 @@ st.markdown("""
             border-radius:8px; border:1px solid #1E2A3A;">
     <div style="font-family:'IBM Plex Mono',monospace; font-size:0.72rem;
                 color:#8FA0B8; letter-spacing:0.05em;">
-        Usa el menu lateral para navegar entre modulos.
-        Los datos se conservan durante toda la sesion.
+        Usa el menú lateral para navegar entre módulos.
+        Los datos se conservan durante toda la sesión.
     </div>
 </div>
 """, unsafe_allow_html=True)
