@@ -105,6 +105,7 @@ def evaluar_politica(politica, estados, decisiones_data, tipo="costos"):
     # Construir sistema de ecuaciones estacionarias: (I - P^T) π = 0, Σπ = 1
     A = []
     b = []
+    # Ecuaciones de balance: n ecuaciones, una por cada estado
     for j in range(n):
         fila = []
         for i in range(n):
@@ -114,24 +115,21 @@ def evaluar_politica(politica, estados, decisiones_data, tipo="costos"):
                 fila.append(-P[i][j])
         A.append(fila)
         b.append(0.0)
-    A.append([1.0] * n)
-    b.append(1.0)
+    # Reemplazar la última ecuación por la de normalización Σπ = 1
+    A[-1] = [1.0] * n
+    b[-1] = 1.0
 
-    # Resolver con numpy (más rápido) o manual si hay error
     try:
-        A_np = np.array(A[:-1], dtype=float)   # Ecuaciones de balance
-        b_np = np.array(b[:-1], dtype=float)
+        A_np = np.array(A, dtype=float)
+        b_np = np.array(b, dtype=float)
 
-        # Usar solo n-1 ecuaciones de balance + la de normalización
-        A_square = np.vstack([A_np, np.ones((1, n))])
-        b_square = np.hstack([b_np, [1.0]])
+        # Intentar resolver directamente
+        pi = np.linalg.solve(A_np, b_np)
 
-        if np.linalg.matrix_rank(A_square) < n:
-            raise np.linalg.LinAlgError("Matriz singular")
-
-        pi = np.linalg.solve(A_square, b_square)
+        # Asegurar no negatividad y normalizar (por posibles errores numéricos)
         pi = np.maximum(pi, 0)
         pi = pi / pi.sum()
+
         esperado = np.dot(pi, c)
 
         # Generar representación textual del sistema
@@ -146,13 +144,13 @@ def evaluar_politica(politica, estados, decisiones_data, tipo="costos"):
             sistema_str.append(f"π{_subindice(j)} = {ec}")
         sistema_str.append(" + ".join([f"π{_subindice(i)}" for i in range(n)]) + " = 1")
 
-        # Gauss‑Jordan manual para mostrar pasos (opcional)
+        # Pasos de Gauss-Jordan para mostrar en la UI (opcional)
         def to_frac(x):
             return Fraction(x).limit_denominator(1000000)
 
         M = []
         for i in range(n):
-            fila = [to_frac(A_square[i][j]) for j in range(n)] + [to_frac(b_square[i])]
+            fila = [to_frac(A[i][j]) for j in range(n)] + [to_frac(b[i])]
             M.append(fila)
 
         pasos_gauss = []
@@ -197,11 +195,22 @@ def evaluar_politica(politica, estados, decisiones_data, tipo="costos"):
             "gauss_steps": pasos_gauss,
         }
 
-    except (np.linalg.LinAlgError, ValueError):
-        # Sistema singular o numéricamente inestable
+    except np.linalg.LinAlgError:
         return {
             "error": True,
             "mensaje": "Matriz singular (sin solución única)",
+            "politica": politica,
+            "P": pd.DataFrame(P, index=estados, columns=estados),
+            "c": dict(zip(estados, c)),
+            "sistema": [],
+            "pi": None,
+            "esperado": None,
+            "gauss_steps": []
+        }
+    except Exception as e:
+        return {
+            "error": True,
+            "mensaje": f"Error inesperado: {str(e)}",
             "politica": politica,
             "P": pd.DataFrame(P, index=estados, columns=estados),
             "c": dict(zip(estados, c)),
