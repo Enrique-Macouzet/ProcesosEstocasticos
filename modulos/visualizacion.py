@@ -1,7 +1,14 @@
 """
 modulos/visualizacion.py
-Muestra tablas resumen de costos y matrices de transicion del MDP ingresado,
-incluyendo un grafo interactivo por decision (Cytoscape.js) con colores para direccion.
+Muestra tablas resumen de costos/ganancias y matrices de transición del MDP ingresado,
+así como un grafo interactivo por decisión que utiliza Cytoscape.js.
+
+La visualización se organiza en:
+- Resumen general (número de estados, decisiones, objetivo).
+- Tabla consolidada de costos/ganancias para todos los pares (estado, decisión).
+- Matriz de transición de la decisión seleccionada mediante un selectbox.
+- Grafo dirigido de la misma decisión, con nodos destacados (afectados vs no afectados)
+  y aristas coloreadas según dirección (estándar vs inversa).
 """
 
 import streamlit as st
@@ -10,7 +17,7 @@ import json
 import math
 from guardado.sesion import get_mdp
 
-# ---------- ESTILOS MINIMOS ----------
+# ---------- ESTILOS MÍNIMOS ----------
 st.markdown("""
 <style>
 #cy {
@@ -25,19 +32,19 @@ mdp = get_mdp()
 # ---------- ENCABEZADO ----------
 st.markdown("""
 <div style="margin-bottom:1.5rem;">
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#F5A800;letter-spacing:.15em;margin-bottom:.4rem;">MODULO 02</div>
-    <h1 style="font-family:'Sora',sans-serif;font-weight:700;font-size:1.8rem;color:#E8EAF0;margin:0;">Visualizacion del Modelo</h1>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#F5A800;letter-spacing:.15em;margin-bottom:.4rem;">MÓDULO 02</div>
+    <h1 style="font-family:'Sora',sans-serif;font-weight:700;font-size:1.8rem;color:#E8EAF0;margin:0;">Visualización del Modelo</h1>
     <p style="color:#8FA0B8;font-size:.9rem;margin:.4rem 0 0 0;">Resumen completo del MDP ingresado.</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Verificar datos minimos
+# Verificar que existan datos mínimos
 if not mdp["estados"] or not mdp["decisiones"]:
     st.markdown("""
     <div style="text-align:center;padding:4rem;color:#8FA0B8;">
         <div style="font-size:2.5rem;margin-bottom:1rem;">📭</div>
         <div style="font-family:'Sora',sans-serif;font-size:1.1rem;margin-bottom:.5rem;">No hay datos ingresados.</div>
-        <div style="font-size:.85rem;">Ve al modulo de <b>Ingreso de Datos</b> para comenzar.</div>
+        <div style="font-size:.85rem;">Ve al módulo de <b>Ingreso de Datos</b> para comenzar.</div>
     </div>
     """, unsafe_allow_html=True)
     st.stop()
@@ -45,7 +52,7 @@ if not mdp["estados"] or not mdp["decisiones"]:
 estados = mdp["estados"]
 decisiones = mdp["decisiones"]
 tipo = mdp["tipo"]
-tipo_label = "Costo" if tipo == "costos" else "Ganancias"
+tipo_label = "Costo" if tipo == "costos" else "Ganancia"
 
 # ---------- RESUMEN GENERAL ----------
 st.markdown("""
@@ -75,7 +82,7 @@ with col2:
 
 with col3:
     obj = "Minimizar costos" if tipo == "costos" else "Maximizar ganancias"
-    icon = "💸" if tipo == "costos" else "🏆"
+    icon = "💸" if tipo == "costos" else "💰"
     st.markdown(f"""
     <div class="unam-card">
         <div style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:#8FA0B8;letter-spacing:.1em;margin-bottom:.75rem;">OBJETIVO</div>
@@ -85,7 +92,7 @@ with col3:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# ---------- TABLA DE COSTOS ----------
+# ---------- TABLA DE COSTOS / GANANCIAS ----------
 st.markdown(f"""
 <div class="section-header">
     <div class="accent-bar"></div>
@@ -113,7 +120,7 @@ st.dataframe(
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# ---------- MATRIZ DE TRANSICION Y GRAFO (SELECCIÓN ÚNICA) ----------
+# ---------- MATRIZ DE TRANSICIÓN Y GRAFO (SELECCIÓN ÚNICA) ----------
 st.markdown("""
 <div class="section-header">
     <div class="accent-bar"></div>
@@ -121,7 +128,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Selector unificado
+# Selector de decisión
 selected_d = st.selectbox(
     "Elegir decisión",
     decisiones,
@@ -153,6 +160,7 @@ else:
     df_trans = pd.DataFrame(rows).set_index("Estado")
 
     def highlight_sum(val):
+        """Resalta en verde la columna Σ si suma 1, en rojo si no."""
         if isinstance(val, float):
             if abs(val - 1.0) < 1e-6:
                 return "color: #10B981; font-weight: 600;"
@@ -191,7 +199,7 @@ else:
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    # ---------- GRAFO ----------
+    # ---------- GRAFO CON CYTOSCAPE.JS ----------
     st.markdown("""
     <div class="section-header">
         <div class="accent-bar"></div>
@@ -202,15 +210,16 @@ else:
     # Construir elementos para Cytoscape
     nodes = []
     edges = []
-    n = len(estados)
 
-    for i, s in enumerate(estados):
+    # Nodos: se marcan como 'affected' si el estado está en la lista de afectados
+    for s in estados:
         is_affected = s in afectados
         nodes.append({
             "data": {"id": s},
             "classes": "affected" if is_affected else "normal"
         })
 
+    # Aristas: solo se agregan aquellas con probabilidad > 0
     for s in afectados:
         fila = data["transiciones"].get(s, {})
         for s2, p in fila.items():
@@ -235,6 +244,7 @@ else:
 
     for key, group in edge_map.items():
         if len(group) > 1:
+            # Varias aristas entre el mismo par: la primera azul, la segunda dorada
             for i, e in enumerate(group):
                 if i == 1:
                     e["data"]["color"] = "#F5A800"
@@ -246,6 +256,7 @@ else:
             src, tgt = key
             opposite_key = (tgt, src)
             if opposite_key in edge_map:
+                # Par bidireccional: según orden lexicográfico asigna color
                 if src < tgt:
                     group[0]["data"]["color"] = "#5B9BD5"
                     group[0]["data"]["targetArrowColor"] = "#5B9BD5"
@@ -253,12 +264,14 @@ else:
                     group[0]["data"]["color"] = "#F5A800"
                     group[0]["data"]["targetArrowColor"] = "#F5A800"
             else:
+                # Sin opuesto: azul por defecto
                 group[0]["data"]["color"] = "#5B9BD5"
                 group[0]["data"]["targetArrowColor"] = "#5B9BD5"
 
     elements = nodes + edges
     elements_json = json.dumps(elements)
 
+    # HTML + Cytoscape
     graph_html = f"""
     <div id="cy" style="width:100%; height:500px; background:#0A0E1A; border-radius:12px; border:1px solid #1E2A3A;"></div>
 

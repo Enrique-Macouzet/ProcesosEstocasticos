@@ -1,7 +1,12 @@
 """
 modulos/inicio.py
-Pagina de inicio del MDP Solver. Muestra resumen del modelo y acceso a modulos.
-Incluye presentacion del equipo y una introduccion a los MDP.
+Página de inicio (Panel Principal) de la aplicación Herramienta MDP.
+
+Muestra:
+- Información del equipo: facultad, profesora e integrantes.
+- Una introducción conceptual a los Procesos Markovianos de Decisión.
+- Un resumen numérico del modelo actual (estados, decisiones, tipo, estado de completitud).
+- Acceso visual a los módulos disponibles.
 """
 
 import streamlit as st
@@ -9,7 +14,7 @@ from guardado.sesion import get_mdp, mdp_completo
 
 st.set_page_config(page_title="Inicio — Herramienta MDP", page_icon="🎓")
 
-# ---------- ESTILOS ----------
+# ---------- ESTILOS LOCALES ----------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
@@ -54,6 +59,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------- TARJETA DE PRESENTACIÓN (INTEGRANTES, FACULTAD, PROFESORA) ----------
+# Reemplazar los marcadores con los nombres reales.
 st.markdown("""
 <div class="team-card">
     <div style="display:flex; flex-wrap:wrap; gap:2rem; align-items:flex-start;">
@@ -155,7 +161,7 @@ with col4:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# ---------- TARJETAS DE MODULOS ----------
+# ---------- TARJETAS DE MÓDULOS ----------
 st.markdown("### Módulos disponibles")
 c1, c2, c3 = st.columns(3)
 

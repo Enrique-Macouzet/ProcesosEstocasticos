@@ -1,18 +1,25 @@
 """
 modulos/ingreso_datos.py
-Interfaz para definir estados, decisiones, costos y matrices de transicion.
-Acepta fracciones (ej. 1/3) en campos numéricos.
+Interfaz para definir los componentes del MDP: estados, decisiones, costos/ganancias y matrices de transición.
+
+Características:
+- Selección del tipo de modelo (costos o ganancias).
+- Ingreso de nombres de estados y decisiones mediante texto separado por comas.
+- Configuración por decisión: estados afectados, costos/ganancias y probabilidades de transición.
+- Acepta fracciones (ej. 1/3) en los campos numéricos.
+- Validación visual de que cada fila de transición sume 1.0.
+- Botones para guardar (validar) y limpiar todo el modelo.
 """
 
 import streamlit as st
 from guardado.sesion import get_mdp, reset_mdp, mdp_completo, init_session
 from fractions import Fraction
 
-# Inicializar sesion
+# Inicializar la sesión para acceder al modelo
 init_session()
 mdp = get_mdp()
 
-# ---------- ESTILOS ----------
+# ---------- ESTILOS LOCALES ----------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
@@ -36,9 +43,20 @@ hr { border-color:#1E2A3A; margin:1.5rem 0; }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- FUNCIONES AUXILIARES ----------
-def evaluar_numero(valor_str, valor_actual=0.0, permitir_fraccion=True):
-    """Convierte una cadena en float, aceptando fracciones como '1/3'."""
+# ---------- FUNCIONES AUXILIARES PARA MANEJO DE NÚMEROS ----------
+def evaluar_numero(valor_str: str, valor_actual: float = 0.0, permitir_fraccion: bool = True) -> float:
+    """
+    Convierte una cadena de texto en un número flotante.
+    Acepta fracciones escritas como '1/3' y decimales.
+
+    Args:
+        valor_str (str): Texto ingresado por el usuario.
+        valor_actual (float): Valor por defecto si la cadena está vacía o es inválida.
+        permitir_fraccion (bool): Si es True, interpreta el símbolo '/'.
+
+    Returns:
+        float: Número evaluado, o valor_actual en caso de error.
+    """
     if not valor_str.strip():
         return valor_actual
     try:
@@ -51,8 +69,18 @@ def evaluar_numero(valor_str, valor_actual=0.0, permitir_fraccion=True):
         st.warning(f"Valor inválido '{valor_str}'. Se usará {valor_actual}")
         return valor_actual
 
-def formatear_numero(valor):
-    """Convierte un float a cadena, usando fracción si es exacta."""
+def formatear_numero(valor: float) -> str:
+    """
+    Convierte un flotante a una cadena legible.
+    Si el valor es cercano a cero, retorna cadena vacía.
+    Si es una fracción exacta (denominador <= 1000), la muestra como 'num/den'.
+
+    Args:
+        valor (float): Número a formatear.
+
+    Returns:
+        str: Representación en texto.
+    """
     if abs(valor) < 1e-12:
         return ""
     frac = Fraction(valor).limit_denominator(1000)
@@ -70,7 +98,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ---------- SECCION 1: ESTADOS Y DECISIONES ----------
+# ---------- SECCIÓN 1: ESTADOS Y DECISIONES ----------
 st.markdown("""
 <div class="section-header">
     <div class="accent-bar"></div>
@@ -101,6 +129,7 @@ with col_est:
     if estados_str.strip():
         nuevos_estados = [s.strip() for s in estados_str.split(",") if s.strip()]
         if nuevos_estados != mdp["estados"]:
+            # Limpiar datos de estados eliminados en todas las decisiones
             eliminados = set(mdp["estados"]) - set(nuevos_estados)
             for estado in eliminados:
                 for d, data in mdp["decisiones_data"].items():
@@ -126,6 +155,7 @@ with col_dec:
     if decisiones_str.strip():
         nuevas_dec = [d.strip() for d in decisiones_str.split(",") if d.strip()]
         if nuevas_dec != mdp["decisiones"]:
+            # Agregar nuevas decisiones con estructura vacía
             for d in nuevas_dec:
                 if d not in mdp["decisiones_data"]:
                     mdp["decisiones_data"][d] = {
@@ -133,6 +163,7 @@ with col_dec:
                         "costos": {},
                         "transiciones": {}
                     }
+            # Eliminar decisiones que ya no están
             for d in list(mdp["decisiones_data"].keys()):
                 if d not in nuevas_dec:
                     del mdp["decisiones_data"][d]
@@ -144,7 +175,7 @@ with col_dec:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# ---------- SECCION 2: CONFIGURACION POR DECISION ----------
+# ---------- SECCIÓN 2: CONFIGURACIÓN POR DECISIÓN ----------
 if not mdp["estados"] or not mdp["decisiones"]:
     st.markdown("""
     <div style="text-align:center;padding:3rem;color:#8FA0B8;">
@@ -167,6 +198,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
     with tab:
         data = mdp["decisiones_data"][d]
 
+        # --- Estados afectados ---
         st.markdown(f"""
         <div style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:#8FA0B8;
                     letter-spacing:.08em;margin-bottom:.75rem;">
@@ -191,6 +223,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
 
         col_costos, col_trans = st.columns([1, 2])
 
+        # --- Costos / Ganancias ---
         with col_costos:
             tipo_label = "Costo" if mdp["tipo"] == "costos" else "Ganancia"
             st.markdown(f"""
@@ -219,6 +252,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                 val = evaluar_numero(val_str, current, permitir_fraccion=True)
                 data["costos"][s] = val
 
+        # --- Matriz de transición ---
         with col_trans:
             st.markdown(f"""
             <div style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:#8FA0B8;
@@ -257,7 +291,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                     with col_i:
                         st.markdown(f"<div style='text-align:center;color:#8FA0B8;font-size:0.7rem;'>{s2}</div>", unsafe_allow_html=True)
 
-                # Inputs de probabilidad
+                # Campos de entrada de probabilidad
                 input_cols = st.columns(len(todos_estados))
                 fila_sum = 0.0
                 for col_i, s2 in zip(input_cols, todos_estados):
@@ -272,10 +306,11 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                             label_visibility="collapsed"
                         )
                         p = evaluar_numero(p_str, current_p, permitir_fraccion=True)
-                        p = max(0.0, min(1.0, p))
+                        p = max(0.0, min(1.0, p))   # Acotar entre 0 y 1
                         fila[s2] = p
                         fila_sum += p
 
+                # Validación de suma
                 diff = abs(fila_sum - 1.0)
                 if diff < 1e-6:
                     st.markdown('<span class="badge-ok">Suma = 1.0000</span>', unsafe_allow_html=True)
@@ -284,7 +319,7 @@ for tab, d in zip(tabs, mdp["decisiones"]):
                 else:
                     st.markdown(f'<span class="badge-err">Suma = {fila_sum:.4f} (debe ser 1.0)</span>', unsafe_allow_html=True)
 
-# ---------- SECCION 3: GUARDAR / REINICIAR ----------
+# ---------- SECCIÓN 3: GUARDAR / REINICIAR ----------
 st.markdown("<hr>", unsafe_allow_html=True)
 
 listo = mdp_completo()
