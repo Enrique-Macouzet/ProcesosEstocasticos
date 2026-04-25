@@ -163,7 +163,7 @@ st.markdown("<hr>", unsafe_allow_html=True)
 
 # ---------- TARJETAS DE MÓDULOS ----------
 st.markdown("### Módulos disponibles")
-c1, c2, c3 = st.columns(3)
+c1, c2, c3, c4 = st.columns(4)
 
 with c1:
     st.markdown("""
@@ -200,6 +200,18 @@ with c3:
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+with c4:
+     st.markdown("""
+        <div class="unam-card" style="border-left: 3px solid #E09600;">
+            <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+                📈 Programación Lineal
+            </div>
+            <div style="color:#8FA0B8; font-size:0.85rem;">
+                Resuelve el MDP mediante un modelo de programación lineal y simplex.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 st.markdown("""
 <div style="margin-top:2rem; padding:1rem; background:#111827;
