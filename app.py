@@ -244,7 +244,8 @@ pg = st.navigation(
             st.Page("modulos/ingreso_datos.py", title="Ingreso de Datos", icon="📥"),
             st.Page("modulos/visualizacion.py", title="Visualización", icon="📊"),
             st.Page("modulos/enumeracion_exhaustiva.py", title="Enumeración Exhaustiva", icon="🔍"),
-            st.Page("modulos/programacion_lineal.py", title="Programación Lineal", icon="📈")
+            st.Page("modulos/programacion_lineal.py", title="Programación Lineal", icon="📈"),
+            st.Page("modulos/mejoramiento_politicas.py", title="Mejoramiento de Políticas", icon="🔄")
         ]
     }
 )

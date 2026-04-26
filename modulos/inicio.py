@@ -1,12 +1,6 @@
 """
 modulos/inicio.py
 Página de inicio (Panel Principal) de la aplicación Herramienta MDP.
-
-Muestra:
-- Información del equipo: facultad, profesora e integrantes.
-- Una introducción conceptual a los Procesos Markovianos de Decisión.
-- Un resumen numérico del modelo actual (estados, decisiones, tipo, estado de completitud).
-- Acceso visual a los módulos disponibles.
 """
 
 import streamlit as st
@@ -14,7 +8,7 @@ from guardado.sesion import get_mdp, mdp_completo
 
 st.set_page_config(page_title="Inicio — Herramienta MDP", page_icon="🎓")
 
-# ---------- ESTILOS LOCALES ----------
+# ---------- ESTILOS ----------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
@@ -58,8 +52,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ---------- TARJETA DE PRESENTACIÓN (INTEGRANTES, FACULTAD, PROFESORA) ----------
-# Reemplazar los marcadores con los nombres reales.
+# ---------- TARJETA DE PRESENTACIÓN ----------
 st.markdown("""
 <div class="team-card">
     <div style="display:flex; flex-wrap:wrap; gap:2rem; align-items:flex-start;">
@@ -83,7 +76,7 @@ st.markdown("""
             </div>
             <div style="display:flex; flex-wrap:wrap; gap:0.5rem 1.5rem;">
                 <div style="color:#E8EAF0;">• Hernández Pérez Victoria</div>
-                <div style="color:#E8EAF0;">• Martínez Macouzet Enrique</div>
+                <div style="color:#E8EAF0;">• Martínez Macouzet Enrique</div>            
             </div>
         </div>
     </div>
@@ -161,9 +154,9 @@ with col4:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# ---------- TARJETAS DE MÓDULOS ----------
+# ---------- TARJETAS DE MÓDULOS (5) ----------
 st.markdown("### Módulos disponibles")
-c1, c2, c3, c4 = st.columns(4)
+c1, c2, c3, c4, c5 = st.columns(5)
 
 with c1:
     st.markdown("""
@@ -172,7 +165,7 @@ with c1:
             📥 Ingreso de Datos
         </div>
         <div style="color:#8FA0B8; font-size:0.85rem;">
-            Define estados, decisiones, costos y matrices de transición de tu MDP.
+            Define estados, decisiones, costos y matrices de transición.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -181,10 +174,10 @@ with c2:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #5B9BD5;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
-            📊 Visualización de Datos
+            📊 Visualización
         </div>
         <div style="color:#8FA0B8; font-size:0.85rem;">
-            Revisa el modelo ingresado: tablas de costos, matrices de transición y grafo de la cadena.
+            Tablas de costos, matrices de transición y grafo interactivo.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -202,16 +195,28 @@ with c3:
     """, unsafe_allow_html=True)
 
 with c4:
-     st.markdown("""
-        <div class="unam-card" style="border-left: 3px solid #E09600;">
-            <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
-                📈 Programación Lineal
-            </div>
-            <div style="color:#8FA0B8; font-size:0.85rem;">
-                Resuelve el MDP mediante un modelo de programación lineal y simplex.
-            </div>
+    st.markdown("""
+    <div class="unam-card" style="border-left: 3px solid #E09600;">
+        <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+            📈 Programación Lineal
         </div>
-        """, unsafe_allow_html=True)
+        <div style="color:#8FA0B8; font-size:0.85rem;">
+            Resuelve el MDP mediante un modelo de programación lineal.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c5:
+    st.markdown("""
+    <div class="unam-card" style="border-left: 3px solid #8B5CF6;">
+        <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+            🔄 Mejoramiento de Políticas
+        </div>
+        <div style="color:#8FA0B8; font-size:0.85rem;">
+            Algoritmo iterativo de evaluación y mejora de políticas.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("""
 <div style="margin-top:2rem; padding:1rem; background:#111827;

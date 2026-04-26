@@ -351,3 +351,32 @@ else:
         <span><span style="color:#F5A800;">→</span> Transición inversa</span>
     </div>
     """, unsafe_allow_html=True)
+
+# ---------- LISTADO DE POLÍTICAS ----------
+st.markdown("---")
+st.markdown("""
+<div class="section-header">
+    <div class="accent-bar"></div>
+    <h3>Políticas del modelo</h3>
+</div>
+""", unsafe_allow_html=True)
+
+with st.expander("Ver todas las políticas", expanded=False):
+    from algoritmos.exhaustiva import generar_politicas
+    politicas = generar_politicas(estados, mdp["decisiones_data"])
+    if not politicas:
+        st.write("No se pueden generar políticas (algún estado no tiene decisiones aplicables).")
+    else:
+        # Mostrar en 2 columnas para aprovechar espacio
+        cols = st.columns(2)
+        for i, pol in enumerate(politicas):
+            nombre = f"R{i+1}"
+            decisiones_str = ", ".join(pol[s] for s in estados)
+            # Tarjeta estilizada
+            with cols[i % 2]:
+                st.markdown(f"""
+                <div class="unam-card" style="padding:0.75rem 1rem; margin-bottom:0.5rem; border-left:3px solid #F5A800;">
+                    <span style="font-family:'IBM Plex Mono',monospace; color:#F5A800; font-weight:600;">{nombre}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace; color:#B0C0D0; margin-left:0.5rem;">= ({decisiones_str})</span>
+                </div>
+                """, unsafe_allow_html=True)

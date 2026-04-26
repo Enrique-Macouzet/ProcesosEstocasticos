@@ -1,21 +1,9 @@
 """
 modulos/enumeracion_exhaustiva.py
-Interfaz para la Enumeración Exhaustiva de políticas deterministas.
-
-Permite:
-- Visualizar todas las políticas disponibles como chips.
-- Seleccionar manualmente cuáles políticas evaluar (por defecto todas).
-- Ejecutar la evaluación con un botón, mostrando progreso.
-- Mostrar la política óptima y sus detalles.
-- Listar todas las políticas evaluadas en cajas expandibles, con pestañas para:
-    * Matriz de transición
-    * Sistema de ecuaciones estacionarias
-    * Probabilidades π
-    * Costo / Ganancia esperado
-- Mostrar pasos de Gauss‑Jordan (opcional).
-- Manejar políticas sin solución (matriz singular) mostrando mensaje adecuado.
-- Incluir una sección final de análisis comparativo con tabla, gráfico de barras
-  y resumen estadístico de las políticas válidas.
+Interfaz para Enumeración Exhaustiva de políticas.
+Permite seleccionar manualmente las políticas a evaluar,
+mostrar detalles de cálculo y determinar la política óptima.
+Incluye análisis comparativo al final.
 """
 
 import streamlit as st
@@ -24,7 +12,7 @@ from algoritmos.exhaustiva import generar_politicas, enumeracion_exhaustiva
 from guardado.sesion import get_mdp, mdp_completo
 
 def _subindice(i):
-    """Convierte un número entero en subíndice Unicode (π₀, π₁, ...)."""
+    """Convierte un número entero en subíndice Unicode."""
     subs = "₀₁₂₃₄₅₆₇₈₉"
     return ''.join(subs[int(d)] for d in str(i))
 
@@ -67,13 +55,13 @@ estados = mdp["estados"]
 decisiones_data = mdp["decisiones_data"]
 tipo = mdp["tipo"]
 
-# Generar todas las políticas posibles (producto cartesiano)
+# Generar todas las políticas posibles
 politicas = generar_politicas(estados, decisiones_data)
 if not politicas:
     st.error("No se pueden generar políticas: algún estado no tiene decisiones aplicables.")
     st.stop()
 
-# Crear diccionario de nombres legibles R1, R2, ...
+# Crear diccionario de nombres de políticas R1, R2, ...
 politicas_dict = {}
 for i, pol in enumerate(politicas):
     nombre = f"R{i+1}"
@@ -84,8 +72,8 @@ st.markdown("### Políticas disponibles")
 cols = st.columns(4)
 for i, (nombre, pol) in enumerate(politicas_dict.items()):
     with cols[i % 4]:
-        texto = ", ".join([f"{s}:{d}" for s, d in pol.items()])
-        st.markdown(f'<span class="chip chip-gold" style="margin:4px;">{nombre}: {texto}</span>', unsafe_allow_html=True)
+        texto = f"({', '.join([pol[s] for s in estados])})"
+        st.markdown(f'<span class="chip chip-gold" style="margin:4px;">{nombre} = {texto}</span>', unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -126,8 +114,7 @@ if st.button("Ejecutar Enumeración Exhaustiva", type="primary"):
         nombre_optimo = [k for k, v in politicas_dict.items() if v == mejor["politica"]][0]
         st.markdown(f"""
         <div class="policy-box policy-optimal">
-            <span style="color:#F5A800; font-weight:700;">{nombre_optimo}</span><br>
-            {", ".join([f"{s} → {d}" for s, d in mejor["politica"].items()])}
+            {nombre_optimo} = ({", ".join([mejor["politica"][s] for s in estados])})
         </div>
         """, unsafe_allow_html=True)
 
@@ -137,7 +124,7 @@ if st.button("Ejecutar Enumeración Exhaustiva", type="primary"):
         with col2:
             st.metric("Tipo de modelo", "Costos (minimizar)" if tipo == "costos" else "Ganancias (maximizar)")
 
-        # Probabilidades estacionarias de la política óptima
+        # Mostrar probabilidades estacionarias de la política óptima
         st.markdown("#### Probabilidades estacionarias (π)")
         pi_df = pd.DataFrame.from_dict(mejor["pi"], orient="index", columns=["π"])
         st.dataframe(pi_df, use_container_width=True)
@@ -145,26 +132,25 @@ if st.button("Ejecutar Enumeración Exhaustiva", type="primary"):
         st.markdown("---")
         st.markdown("### Políticas evaluadas")
 
-        # Separar resultados válidos e inválidos
+        # Ordenar resultados (los válidos primero, luego los inválidos)
         resultados_validos = [r for r in resultados if not r.get("error", False)]
         resultados_invalidos = [r for r in resultados if r.get("error", False)]
 
-        # Ordenar válidos según tipo de modelo
         if tipo == "costos":
             resultados_validos = sorted(resultados_validos, key=lambda x: x["esperado"])
         else:
             resultados_validos = sorted(resultados_validos, key=lambda x: x["esperado"], reverse=True)
 
-        # Mostrar políticas válidas
+        # Mostrar primero los válidos
         for res in resultados_validos:
             nombre = [k for k, v in politicas_dict.items() if v == res["politica"]][0]
             is_optimal = (res == mejor)
             border_style = "border-left: 4px solid #F5A800;" if is_optimal else ""
 
-            with st.expander(f"{nombre} — Esperado: {res['esperado']:.6f}" + (" (ÓPTIMA)" if is_optimal else "")):
+            with st.expander(f"{nombre}: {res['esperado']:.6f}" + (" (ÓPTIMA)" if is_optimal else "")):
                 st.markdown(f"""
                 <div style="{border_style} padding-left: 1rem;">
-                    <p><b>Decisiones:</b> {", ".join([f"{s} → {d}" for s, d in res["politica"].items()])}</p>
+                    <p><b>{nombre} =</b> ({", ".join([res["politica"][s] for s in estados])})</p>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -195,11 +181,11 @@ if st.button("Ejecutar Enumeración Exhaustiva", type="primary"):
                             df_matriz = pd.DataFrame(matriz, columns=cols)
                             st.dataframe(df_matriz, use_container_width=True)
 
-        # Mostrar políticas inválidas (sin solución)
+        # Luego mostrar los inválidos
         for res in resultados_invalidos:
             nombre = [k for k, v in politicas_dict.items() if v == res["politica"]][0]
             with st.expander(f"{nombre} — ⚠️ {res.get('mensaje', 'Sin solución')}"):
-                st.markdown(f"**Decisiones:** {', '.join([f'{s} → {d}' for s, d in res['politica'].items()])}")
+                st.markdown(f"**{nombre} =** ({', '.join([res['politica'][s] for s in estados])})")
                 st.dataframe(res["P"], use_container_width=True)
 
         # ---------- ANÁLISIS COMPARATIVO ----------
@@ -215,11 +201,10 @@ if st.button("Ejecutar Enumeración Exhaustiva", type="primary"):
             tipo_valor = "Costo" if tipo == "costos" else "Ganancia"
             opt_valor = mejor["esperado"]
 
-            # Preparar datos para tabla comparativa
             data_comparativa = []
             for res in resultados_validos:
                 nombre = [k for k, v in politicas_dict.items() if v == res["politica"]][0]
-                decisiones_str = ", ".join([f"{s}→{d}" for s, d in res["politica"].items()])
+                decisiones_str = ", ".join([res["politica"][s] for s in estados])
                 esperado = res["esperado"]
                 diff_abs = esperado - opt_valor
                 diff_pct = (diff_abs / opt_valor * 100) if opt_valor != 0 else 0.0
@@ -237,7 +222,6 @@ if st.button("Ejecutar Enumeración Exhaustiva", type="primary"):
             df_comp = pd.DataFrame(data_comparativa)
             df_comp = df_comp.sort_values(f"{tipo_valor} esperado", ascending=(tipo == "costos"))
 
-            # Tabla comparativa
             st.markdown("#### 📋 Tabla comparativa")
             st.dataframe(
                 df_comp.style.format({
@@ -277,7 +261,6 @@ if st.button("Ejecutar Enumeración Exhaustiva", type="primary"):
                     }).set_index("Política")
                 )
 
-            # Estadísticas comparativas
             st.markdown("#### 📈 Estadísticas comparativas")
             suboptimas = [d for d in data_comparativa if d["Óptima"] != "✅"]
             num_optimas = len(data_comparativa) - len(suboptimas)
@@ -305,7 +288,6 @@ if st.button("Ejecutar Enumeración Exhaustiva", type="primary"):
                 else:
                     st.markdown("Todas son óptimas")
 
-            # Interpretación textual
             if suboptimas:
                 st.markdown("---")
                 st.markdown("**Interpretación:**")

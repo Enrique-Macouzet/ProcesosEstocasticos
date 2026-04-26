@@ -54,7 +54,6 @@ with tab_modelo:
     st.latex(resultado["modelo"]["funcion_objetivo"])
     st.markdown("### Sujeta a:")
     st.markdown("**Restricciones de balance (para cada estado excepto el último):**")
-    # Mostrar versión final (coeficientes numéricos)
     for ec in resultado["modelo"]["restricciones_desarrollo"]:
         st.latex(ec)
     st.markdown("**Normalización:**")
@@ -68,7 +67,7 @@ with tab_construccion:
     st.latex(resultado["modelo"]["formula_general"])
     st.markdown("Aplicando a nuestro modelo:")
 
-    for idx, s in enumerate(estados[:-1]):   # sin el último
+    for idx, s in enumerate(estados[:-1]):
         with st.expander(f"Estado {s}"):
             st.markdown("**Forma completa (todos los términos simbólicos):**")
             st.latex(resultado["modelo"]["restricciones_completas"][idx])
@@ -86,11 +85,19 @@ with tab_construccion:
 with tab_resultados:
     st.success("Solución óptima encontrada.")
     st.markdown("### Política Óptima")
-    st.markdown(f"""
-    <div class="policy-box policy-optimal">
-        {", ".join([f"{s} → {d}" for s, d in resultado["politica"].items()])}
-    </div>
-    """, unsafe_allow_html=True)
+    nombre = resultado.get("nombre_politica", "")
+    if nombre:
+        st.markdown(f"""
+        <div class="policy-box policy-optimal">
+            {nombre} = ({", ".join([resultado["politica"][s] for s in estados])})
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div class="policy-box policy-optimal">
+            ({", ".join([resultado["politica"][s] for s in estados])})
+        </div>
+        """, unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         tipo_valor = "Costo mínimo" if tipo == "costos" else "Ganancia máxima"
