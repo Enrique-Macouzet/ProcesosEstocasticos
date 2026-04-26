@@ -151,19 +151,23 @@ if st.button("Ejecutar Mejoramiento de Políticas", type="primary"):
                 if s == estados[-1]:
                     izq = f"g({nombre_actual})"
                 else:
-                    izq = f"g({nombre_actual}) + V{_subindice(s)}"
+                    # Coeficiente neto de V_i: 1 - P(i,i)
+                    p_ii = trans.get(s, 0.0)
+                    coef_Vi = 1.0 - p_ii
+                    izq = f"g({nombre_actual})"
+                    if abs(coef_Vi) > 1e-12:
+                        izq += f" + {coef_Vi:.4f} V{_subindice(s)}"
 
-                # Términos -P_{ij} V_j, omitiendo V_j cuando j es el último estado (V_j = 0)
+                # Términos -P_{ij} V_j para j != i y j != último estado
                 terminos = []
                 for s2, prob in trans.items():
-                    if prob != 0 and s2 != estados[-1]:
+                    if s2 != s and prob != 0 and s2 != estados[-1]:
                         terminos.append(f"- {prob:.4f} V{_subindice(s2)}")
                 if terminos:
                     izq += " " + " ".join(terminos)
 
                 eq = f"{izq} = {costo:.4f}"
                 st.latex(eq)
-
             # --- Paso de mejora ---
             st.markdown("**Mejora (valores por decisión):**")
             for s in estados:
