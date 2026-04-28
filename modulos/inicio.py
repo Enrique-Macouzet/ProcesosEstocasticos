@@ -154,66 +154,119 @@ with col4:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# ---------- TARJETAS DE MÓDULOS (5) ----------
+# ---------- TARJETAS DE MÓDULOS ----------
 st.markdown("### Módulos disponibles")
+
+# Primera fila (5 tarjetas)
 c1, c2, c3, c4, c5 = st.columns(5)
 
 with c1:
     st.markdown("""
-    <div class="unam-card" style="border-left: 3px solid #F5A800;">
+    <div class="unam-card" style="border-left: 3px solid #3B82F6;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
             📥 Ingreso de Datos
         </div>
         <div style="color:#8FA0B8; font-size:0.85rem;">
-            Define estados, decisiones, costos y matrices de transición.
+            Define los elementos del modelo: estados, decisiones, costos y transiciones.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with c2:
     st.markdown("""
-    <div class="unam-card" style="border-left: 3px solid #5B9BD5;">
+    <div class="unam-card" style="border-left: 3px solid #10B981;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
             📊 Visualización
         </div>
         <div style="color:#8FA0B8; font-size:0.85rem;">
-            Tablas de costos, matrices de transición y grafo interactivo.
+            Explora el modelo con tablas detalladas y un grafo interactivo.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with c3:
     st.markdown("""
-    <div class="unam-card" style="border-left: 3px solid #10B981;">
+    <div class="unam-card" style="border-left: 3px solid #8B5CF6;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
             🔍 Enumeración Exhaustiva
         </div>
         <div style="color:#8FA0B8; font-size:0.85rem;">
-            Evalúa todas las políticas deterministas y encuentra la óptima.
+            Evalúa todas las combinaciones posibles para hallar la política óptima.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with c4:
     st.markdown("""
-    <div class="unam-card" style="border-left: 3px solid #E09600;">
+    <div class="unam-card" style="border-left: 3px solid #F59E0B;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
             📈 Programación Lineal
         </div>
         <div style="color:#8FA0B8; font-size:0.85rem;">
-            Resuelve el MDP mediante un modelo de programación lineal.
+            Resuelve el MDP usando un modelo de programación lineal.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with c5:
     st.markdown("""
-    <div class="unam-card" style="border-left: 3px solid #8B5CF6;">
+    <div class="unam-card" style="border-left: 3px solid #EF4444;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
             🔄 Mejoramiento de Políticas
         </div>
         <div style="color:#8FA0B8; font-size:0.85rem;">
-            Algoritmo iterativo de evaluación y mejora de políticas.
+            Aplica el algoritmo iterativo de mejora de políticas.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Segunda fila (4 tarjetas)
+c6, c7, c8, c9 = st.columns(4)
+
+with c6:
+    st.markdown("""
+    <div class="unam-card" style="border-left: 3px solid #EC4899;">
+        <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+            💲 Mej. Políticas c/ Descuento
+        </div>
+        <div style="color:#8FA0B8; font-size:0.85rem;">
+            Mejoramiento de políticas con factor de descuento.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c7:
+    st.markdown("""
+    <div class="unam-card" style="border-left: 3px solid #06B6D4;">
+        <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+            🔁 Aproximaciones Sucesivas
+        </div>
+        <div style="color:#8FA0B8; font-size:0.85rem;">
+            Iteración de valores para encontrar la política óptima.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c8:
+    st.markdown("""
+    <div class="unam-card" style="border-left: 3px solid #84CC16;">
+        <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+            ⚖️ Comparación de Métodos
+        </div>
+        <div style="color:#8FA0B8; font-size:0.85rem;">
+            Reúne los resultados de todos los algoritmos aplicados.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c9:
+    st.markdown("""
+    <div class="unam-card" style="border-left: 3px solid #F5A800;">
+        <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+            📤 Exportar a Excel
+        </div>
+        <div style="color:#8FA0B8; font-size:0.85rem;">
+            Descarga el modelo y las soluciones en un libro de Excel.
         </div>
     </div>
     """, unsafe_allow_html=True)

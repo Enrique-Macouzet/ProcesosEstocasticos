@@ -235,6 +235,7 @@ with st.sidebar:
 # ---------- NAVEGACION ENTRE PAGINAS ----------
 # Se definen las paginas disponibles en la aplicacion.
 # La navegacion se gestiona con el componente nativo st.navigation.
+
 pg = st.navigation(
     {
         "Inicio": [
@@ -245,8 +246,13 @@ pg = st.navigation(
             st.Page("modulos/visualizacion.py", title="Visualización", icon="📊"),
             st.Page("modulos/enumeracion_exhaustiva.py", title="Enumeración Exhaustiva", icon="🔍"),
             st.Page("modulos/programacion_lineal.py", title="Programación Lineal", icon="📈"),
-            st.Page("modulos/mejoramiento_politicas.py", title="Mejoramiento de Políticas", icon="🔄")
+            st.Page("modulos/mejoramiento_politicas.py", title="Mejoramiento de Políticas", icon="🔄"),
+            st.Page("modulos/mejoramiento_politicas_descuento.py", title="Mej. de Políticas c/ Desc.", icon="💲"),
+            st.Page("modulos/aproximaciones_sucesivas.py", title="Aproximaciones Sucesivas", icon="🔁"),
+            st.Page("modulos/comparacion_metodos.py", title="Comparación de Métodos", icon="⚖️"),
+            st.Page("modulos/exportar_excel.py", title="Exportar a Excel", icon="📤")
         ]
     }
 )
 pg.run()
+

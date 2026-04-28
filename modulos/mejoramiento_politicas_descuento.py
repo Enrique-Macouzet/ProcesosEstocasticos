@@ -1,21 +1,21 @@
 """
-modulos/mejoramiento_politicas.py
-Interfaz del algoritmo de Mejoramiento de Políticas (Policy Iteration).
+modulos/mejoramiento_politicas_descuento.py
+Interfaz del algoritmo de Mejoramiento de Políticas con descuento.
 Muestra iteraciones, sistema de evaluación en tres niveles y mejora detallada.
 """
 
 import streamlit as st
 import pandas as pd
-from algoritmos.mejoramiento_politicas import mejoramiento_politicas
+import numpy as np
+from algoritmos.mejoramiento_politicas_descuento import mejoramiento_politicas_descuento
 from algoritmos.exhaustiva import generar_politicas
 from guardado.sesion import get_mdp, mdp_completo
 
 def _subindice(i):
-    """Convierte un número entero en subíndice Unicode (₀, ₁, ...)."""
     subs = "₀₁₂₃₄₅₆₇₈₉"
     return ''.join(subs[int(d)] for d in str(i))
 
-st.set_page_config(page_title="Mejoramiento de Políticas — MDP", page_icon="🔄")
+st.set_page_config(page_title="Mejoramiento de Políticas c/ Desc. — MDP", page_icon="💲")
 
 mdp = get_mdp()
 
@@ -28,9 +28,9 @@ st.markdown("""
 
 st.markdown("""
 <div style="margin-bottom:1.5rem;">
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#F5A800;letter-spacing:.15em;margin-bottom:.4rem;">MÓDULO 05</div>
-    <h1 style="font-family:'Sora',sans-serif;font-weight:700;font-size:1.8rem;color:#E8EAF0;margin:0;">Mejoramiento de Políticas</h1>
-    <p style="color:#8FA0B8;font-size:.9rem;margin:.4rem 0 0 0;">Algoritmo iterativo de evaluación y mejora de políticas.</p>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#F5A800;letter-spacing:.15em;margin-bottom:.4rem;">MÓDULO 06</div>
+    <h1 style="font-family:'Sora',sans-serif;font-weight:700;font-size:1.8rem;color:#E8EAF0;margin:0;">Mejoramiento de Políticas con Descuento</h1>
+    <p style="color:#8FA0B8;font-size:.9rem;margin:.4rem 0 0 0;">Policy Iteration con factor de descuento α.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -42,7 +42,22 @@ estados = mdp["estados"]
 decisiones_data = mdp["decisiones_data"]
 tipo = mdp["tipo"]
 
-# Generar políticas para selección inicial
+# --- Factor de descuento ---
+st.markdown("### Factor de descuento α")
+modo_alpha = st.radio("Selecciona cómo ingresar el factor de descuento:",
+                       ["Directamente (α)", "Mediante tasa de interés i"])
+if modo_alpha == "Directamente (α)":
+    alpha = st.number_input("α (entre 0 y 1)", min_value=0.0, max_value=0.9999, value=0.9, step=0.01)
+else:
+    i = st.number_input("Tasa de interés i (ej. 0.05 para 5%)", min_value=0.0, value=0.0, step=0.001)
+    if i >= 0:
+        alpha = 1.0 / (1.0 + i)
+        st.write(f"α calculado = 1/(1+{i}) = {alpha:.6f}")
+    else:
+        alpha = 1.0
+st.markdown("---")
+
+# --- Generar políticas para selección inicial ---
 politicas = generar_politicas(estados, decisiones_data)
 politicas_dict = {}
 for i, pol in enumerate(politicas):
@@ -63,10 +78,13 @@ politica_elegida = st.selectbox(
     help="La profesora indicará cuál elegir."
 )
 
-if st.button("Ejecutar Mejoramiento de Políticas", type="primary"):
+if st.button("Ejecutar Mejoramiento de Políticas con Descuento", type="primary"):
     politica_inicial = politicas_dict[politica_elegida]
     with st.spinner("Ejecutando iteraciones..."):
-        iteraciones = mejoramiento_politicas(estados, decisiones_data, tipo, politica_inicial)
+        iteraciones = mejoramiento_politicas_descuento(
+            estados, decisiones_data, tipo,
+            politica_inicial=politica_inicial, alpha=alpha
+        )
 
     st.success(f"Algoritmo completado en {len(iteraciones)} iteraciones.")
 
@@ -92,11 +110,13 @@ if st.button("Ejecutar Mejoramiento de Políticas", type="primary"):
         </div>
         """, unsafe_allow_html=True)
 
-    g_opt = iteraciones[-1]["g"]
+    # Valores V de la política óptima
+    V_opt = iteraciones[-1]["V"]
     col1, col2 = st.columns(2)
     with col1:
-        tipo_valor = "Costo mínimo" if tipo == "costos" else "Ganancia máxima"
-        st.metric(tipo_valor, f"{g_opt:.6f}")
+        st.markdown("**Valores V de la política óptima**")
+        for s in estados:
+            st.write(f"V{_subindice(s)} = {V_opt[s]:.6f}")
     with col2:
         st.metric("Tipo de modelo", "Costos (minimizar)" if tipo == "costos" else "Ganancias (maximizar)")
 
@@ -118,7 +138,6 @@ if st.button("Ejecutar Mejoramiento de Políticas", type="primary"):
                     st.write(f"{nombre_actual} = ({', '.join([it['politica'][s] for s in estados])})")
                 else:
                     st.write("---")
-                st.markdown(f"**g({nombre_actual}) = {it['g']:.6f}**" if nombre_actual else f"**g = {it['g']:.6f}**")
                 st.markdown("**Valores V:**")
                 for s in estados:
                     st.write(f"V{_subindice(s)} = {it['V'][s]:.6f}")
@@ -149,83 +168,71 @@ if st.button("Ejecutar Mejoramiento de Políticas", type="primary"):
             st.markdown("🔹 **Formación (estructura general):**")
             for s in estados:
                 k = it["politica"][s]
-                costo = decisiones_data[k]["costos"].get(s, 0.0)
+                costo = it["c"][estados.index(s)]
                 trans = decisiones_data[k]["transiciones"].get(s, {})
 
-                # Sumatoria incluyendo todas las probabilidades (excepto al último estado porque V_n=0)
+                # Sumatoria incluyendo todos los estados (sin omitir el último)
                 sum_terms = []
-                for s2 in estados[:-1]:      # omitimos el último estado
+                for s2 in estados:
                     prob = trans.get(s2, 0.0)
                     sum_terms.append(f"P_{{{s}{s2}}}({k}) V{_subindice(s2)}")
 
                 rhs = f"C_{{{s}{k}}}"
                 if sum_terms:
-                    rhs += " + " + " + ".join(sum_terms)
-                if s != estados[-1]:
-                    rhs += f" - V{_subindice(s)}"
+                    rhs += f" + {alpha:.4f}·(" + " + ".join(sum_terms) + ")"
 
-                lhs = f"g({nombre_actual})"
+                lhs = f"V{_subindice(s)}"
                 st.latex(f"{lhs} = {rhs}")
 
             st.markdown("🔹 **Valores sustituidos:**")
             for s in estados:
                 k = it["politica"][s]
-                costo = decisiones_data[k]["costos"].get(s, 0.0)
+                costo = it["c"][estados.index(s)]
                 trans = decisiones_data[k]["transiciones"].get(s, {})
 
                 terms = []
-                for s2 in estados[:-1]:      # omitimos el último
+                for s2 in estados:
                     prob = trans.get(s2, 0.0)
                     if prob != 0:
                         terms.append(f"{prob:.4f} V{_subindice(s2)}")
 
                 rhs = f"{costo:.4f}"
                 if terms:
-                    rhs += " + " + " + ".join(terms)
-                if s != estados[-1]:
-                    rhs += f" - V{_subindice(s)}"
+                    rhs += f" + {alpha:.4f}·(" + " + ".join(terms) + ")"
 
-                lhs = f"g({nombre_actual})"
+                lhs = f"V{_subindice(s)}"
                 st.latex(f"{lhs} = {rhs}")
 
             st.markdown("🔹 **Sistema simplificado (agrupado):**")
             for s in estados:
                 k = it["politica"][s]
-                costo = decisiones_data[k]["costos"].get(s, 0.0)
+                costo = it["c"][estados.index(s)]
                 trans = decisiones_data[k]["transiciones"].get(s, {})
 
-                if s == estados[-1]:
-                    # Último estado: V_n = 0, se construye la ecuación con los V_j no nulos
-                    lhs_terms = [f"g({nombre_actual})"]
-                    for s2 in estados[:-1]:
-                        prob = trans.get(s2, 0.0)
-                        if prob != 0:
-                            lhs_terms.append(f"- {prob:.4f} V{_subindice(s2)}")
-                    lhs = " ".join(lhs_terms)
-                    rhs = f"{costo:.4f}"
-                else:
-                    # Para otros estados: g + (1 - P_ii) V_i - Σ_{j≠i} P_ij V_j
-                    p_ii = trans.get(s, 0.0)
-                    coef_Vi = 1.0 - p_ii
-                    lhs_terms = [f"g({nombre_actual})"]
-                    if abs(coef_Vi) > 1e-12:
-                        lhs_terms.append(f"+ {coef_Vi:.4f} V{_subindice(s)}")
-                    for s2 in estados[:-1]:
-                        if s2 == s:
-                            continue
-                        prob = trans.get(s2, 0.0)
-                        if prob != 0:
-                            lhs_terms.append(f"- {prob:.4f} V{_subindice(s2)}")
-                    lhs = " ".join(lhs_terms)
-                    rhs = f"{costo:.4f}"
+                # Construir: V_i - α Σ_j P_{ij} V_j = costo
+                p_ii = trans.get(s, 0.0)
+                coef_Vi = 1.0 - alpha * p_ii
+                lhs_terms = []
+                if abs(coef_Vi) > 1e-12:
+                    lhs_terms.append(f"{coef_Vi:+.4f} V{_subindice(s)}")
+                for s2 in estados:
+                    if s2 == s:
+                        continue
+                    prob = trans.get(s2, 0.0)
+                    if prob != 0:
+                        coef = -alpha * prob
+                        lhs_terms.append(f"{coef:+.4f} V{_subindice(s2)}")
 
+                lhs = " ".join(lhs_terms) if lhs_terms else f"V{_subindice(s)}"
+                if not lhs.startswith(('+', '-')):
+                    lhs = "+ " + lhs
+                rhs = f"{costo:.4f}"
                 st.latex(f"{lhs} = {rhs}")
 
             # ────────────────────────────────────────────────────────
             # PASO DE MEJORA (detallado)
-            # Ahora: C_{ik} + Σ P_{ij}(k) V_j - V_i   (incluyendo P_{ii})
             # ────────────────────────────────────────────────────────
-            st.markdown("**Mejora (valores por decisión):**")
+            st.markdown("**Mejora (valores Q por decisión):**")
             for s in estados:
                 st.markdown(f"**Estado {s}:**")
                 elegida = it["nueva_politica"][s]
@@ -242,9 +249,7 @@ if st.button("Ejecutar Mejoramiento de Políticas", type="primary"):
                             sum_sym.append(f"P_{{{s}{s2}}}({d}) V{_subindice(s2)}")
                         formula = f"C_{{{s}{d}}}"
                         if sum_sym:
-                            formula += " + " + " + ".join(sum_sym)
-                        if s != estados[-1]:
-                            formula += f" - V{_subindice(s)}"
+                            formula += f" + {alpha:.4f}·(" + " + ".join(sum_sym) + ")"
 
                         # --- Sustitución numérica ---
                         sum_num = []
@@ -253,15 +258,11 @@ if st.button("Ejecutar Mejoramiento de Políticas", type="primary"):
                             sum_num.append(f"{prob:.4f}·({it['V'][s2]:.4f})")
                         expr_num = f"{costo:.4f}"
                         if sum_num:
-                            expr_num += " + " + " + ".join(sum_num)
-                        if s != estados[-1]:
-                            expr_num += f" - ({it['V'][s]:.4f})"
+                            expr_num += f" + {alpha:.4f}·(" + " + ".join(sum_num) + ")"
 
                         # --- Valor final ---
                         suma = sum(prob * it["V"][s2] for s2, prob in trans.items())
-                        valor_final = costo + suma
-                        if s != estados[-1]:
-                            valor_final -= it["V"][s]
+                        valor_final = costo + alpha * suma
 
                         prefijo = "✅ " if d == elegida else "   "
                         st.latex(f"{prefijo}{formula} = {expr_num} = {valor_final:.6f}")
