@@ -271,6 +271,17 @@ with c9:
     </div>
     """, unsafe_allow_html=True)
 
+# Tercera fila (1 tarjeta centrada)
+c10 = st.columns([1, 2, 1])  # truco para centrar
+with c10[1]:
+    st.markdown("""
+    <div class="unam-card" style="border-left: 3px solid #A855F7; text-align: center;">
+        <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+            🙏 Agradecimientos
+        </div> 
+    </div>
+    """, unsafe_allow_html=True)
+
 st.markdown("""
 <div style="margin-top:2rem; padding:1rem; background:#111827;
             border-radius:8px; border:1px solid #1E2A3A;">

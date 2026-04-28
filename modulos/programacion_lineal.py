@@ -23,7 +23,7 @@ st.markdown("""
 <div style="margin-bottom:1.5rem;">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#F5A800;letter-spacing:.15em;margin-bottom:.4rem;">MÓDULO 04</div>
     <h1 style="font-family:'Sora',sans-serif;font-weight:700;font-size:1.8rem;color:#E8EAF0;margin:0;">Programación Lineal</h1>
-    <p style="color:#8FA0B8;font-size:.9rem;margin:.4rem 0 0 0;">Resuelve el MDP mediante un modelo de programación lineal.</p>
+    <p style="color:#8FA0B8;font-size:.9rem;margin:.4rem 0 0 0;">Resuelve el MDP usando un modelo de programación lineal.</p>
 </div>
 """, unsafe_allow_html=True)
 

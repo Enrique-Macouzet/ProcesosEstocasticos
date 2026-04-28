@@ -250,9 +250,9 @@ pg = st.navigation(
             st.Page("modulos/mejoramiento_politicas_descuento.py", title="Mej. de Políticas c/ Desc.", icon="💲"),
             st.Page("modulos/aproximaciones_sucesivas.py", title="Aproximaciones Sucesivas", icon="🔁"),
             st.Page("modulos/comparacion_metodos.py", title="Comparación de Métodos", icon="⚖️"),
-            st.Page("modulos/exportar_excel.py", title="Exportar a Excel", icon="📤")
+            st.Page("modulos/exportar_excel.py", title="Exportar a Excel", icon="📤"),
+            st.Page("modulos/agradecimientos.py", title="Agradecimientos", icon="🙏")            
         ]
     }
 )
 pg.run()
-

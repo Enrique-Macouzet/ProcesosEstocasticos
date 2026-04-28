@@ -34,7 +34,7 @@ st.markdown("""
 <div style="margin-bottom:1.5rem;">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#F5A800;letter-spacing:.15em;margin-bottom:.4rem;">MÓDULO 02</div>
     <h1 style="font-family:'Sora',sans-serif;font-weight:700;font-size:1.8rem;color:#E8EAF0;margin:0;">Visualización del Modelo</h1>
-    <p style="color:#8FA0B8;font-size:.9rem;margin:.4rem 0 0 0;">Resumen completo del MDP ingresado.</p>
+<p style="color:#8FA0B8;font-size:.9rem;margin:.4rem 0 0 0;">Explora el modelo con tablas detalladas y un grafo interactivo.</p>
 </div>
 """, unsafe_allow_html=True)
 
