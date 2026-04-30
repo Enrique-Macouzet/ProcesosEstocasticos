@@ -243,6 +243,7 @@ pg = st.navigation(
         ],
         "Módulos": [
             st.Page("modulos/ingreso_datos.py", title="Ingreso de Datos", icon="📥"),
+            st.Page("modulos/importar_excel.py", title="Importar desde Excel", icon="📂"),
             st.Page("modulos/visualizacion.py", title="Visualización", icon="📊"),
             st.Page("modulos/enumeracion_exhaustiva.py", title="Enumeración Exhaustiva", icon="🔍"),
             st.Page("modulos/programacion_lineal.py", title="Programación Lineal", icon="📈"),

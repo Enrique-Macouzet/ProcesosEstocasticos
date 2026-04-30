@@ -174,6 +174,18 @@ with c1:
 
 with c2:
     st.markdown("""
+    <div class="unam-card" style="border-left: 3px solid #0EA5E9;">
+        <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
+            📂 Importar desde Excel
+        </div>
+        <div style="color:#8FA0B8; font-size:0.85rem;">
+            Carga un modelo MDP desde un archivo Excel con el formato de la plantilla.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c3:
+    st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #10B981;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
             📊 Visualización
@@ -184,7 +196,7 @@ with c2:
     </div>
     """, unsafe_allow_html=True)
 
-with c3:
+with c4:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #8B5CF6;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
@@ -196,7 +208,7 @@ with c3:
     </div>
     """, unsafe_allow_html=True)
 
-with c4:
+with c5:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #F59E0B;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
@@ -208,7 +220,11 @@ with c4:
     </div>
     """, unsafe_allow_html=True)
 
-with c5:
+
+# Segunda fila (4 tarjetas)
+c6, c7, c8, c9 = st.columns(4)
+
+with c6:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #EF4444;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
@@ -220,10 +236,7 @@ with c5:
     </div>
     """, unsafe_allow_html=True)
 
-# Segunda fila (4 tarjetas)
-c6, c7, c8, c9 = st.columns(4)
-
-with c6:
+with c7:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #EC4899;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
@@ -235,7 +248,7 @@ with c6:
     </div>
     """, unsafe_allow_html=True)
 
-with c7:
+with c8:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #06B6D4;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
@@ -247,7 +260,7 @@ with c7:
     </div>
     """, unsafe_allow_html=True)
 
-with c8:
+with c9:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #84CC16;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
@@ -259,7 +272,10 @@ with c8:
     </div>
     """, unsafe_allow_html=True)
 
-with c9:
+
+# Tercera fila (2 tarjetas) 
+c10, c11 = st.columns(2)
+with c10:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #F5A800;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
@@ -271,9 +287,7 @@ with c9:
     </div>
     """, unsafe_allow_html=True)
 
-# Tercera fila (1 tarjeta centrada)
-c10 = st.columns([1, 2, 1])  # truco para centrar
-with c10[1]:
+with c11:
     st.markdown("""
     <div class="unam-card" style="border-left: 3px solid #A855F7; text-align: center;">
         <div style="font-family:'Sora',sans-serif; font-weight:600; color:#E8EAF0; margin-bottom:6px;">
