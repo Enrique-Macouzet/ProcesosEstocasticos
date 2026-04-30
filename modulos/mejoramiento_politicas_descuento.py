@@ -56,6 +56,7 @@ else:
     else:
         alpha = 1.0
 st.markdown("---")
+st.session_state["alpha_descuento"] = alpha
 
 # --- Generar políticas para selección inicial ---
 politicas = generar_politicas(estados, decisiones_data)

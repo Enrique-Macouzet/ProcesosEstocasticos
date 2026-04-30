@@ -76,6 +76,7 @@ def mejoramiento_politicas_descuento(estados, decisiones_data, tipo="costos",
     iteraciones = []
     while True:
         V, P, c, A = evaluar_politica_descuento(politica_actual, estados, decisiones_data, alpha)
+        costo_esperado = np.dot(list(V.values()), c)   # c es el vector de costos de la política actual
         nueva_politica = mejorar_politica_descuento(V, estados, decisiones_data, alpha, tipo)
         iteraciones.append({
             "politica": politica_actual.copy(),
@@ -83,6 +84,7 @@ def mejoramiento_politicas_descuento(estados, decisiones_data, tipo="costos",
             "P": P,
             "c": c,
             "A": A,
+            "costo_esperado": costo_esperado,
             "nueva_politica": nueva_politica.copy()
         })
         if nueva_politica == politica_actual:
